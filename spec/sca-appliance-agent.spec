@@ -4,6 +4,7 @@
 #
 # norootforbuild
 # neededforbuild
+%define sca_common sca
 
 Name:         sca-appliance-agent
 Summary:      Supportconfig Analysis Appliance Agent
@@ -43,16 +44,16 @@ gzip -9f man/*
 %install
 pwd;ls -la
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/etc/opt/%{name}
-install -d $RPM_BUILD_ROOT/opt/%{name}/bin
+install -d $RPM_BUILD_ROOT/etc/opt/%{sca_common}
+install -d $RPM_BUILD_ROOT/opt/%{sca_common}/bin
 install -d $RPM_BUILD_ROOT/usr/share/man/man1
 install -d $RPM_BUILD_ROOT/usr/share/man/man5
-install -d $RPM_BUILD_ROOT/usr/share/doc/packages/%{name}
-install -d $RPM_BUILD_ROOT/var/opt/%{name}
-install -m 644 config/*.conf $RPM_BUILD_ROOT/etc/opt/%{name}
-install -m 644 config/* $RPM_BUILD_ROOT/usr/share/doc/packages/%{name}
-install -m 544 bin/* $RPM_BUILD_ROOT/opt/%{name}/bin
-install -m 644 docs/* $RPM_BUILD_ROOT/usr/share/doc/packages/%{name}
+install -d $RPM_BUILD_ROOT/usr/share/doc/packages/%{sca_common}
+install -d $RPM_BUILD_ROOT/var/opt/%{sca_common}
+install -m 644 config/*.conf $RPM_BUILD_ROOT/etc/opt/%{sca_common}
+install -m 644 config/* $RPM_BUILD_ROOT/usr/share/doc/packages/%{sca_common}
+install -m 544 bin/* $RPM_BUILD_ROOT/opt/%{sca_common}/bin
+install -m 644 docs/* $RPM_BUILD_ROOT/usr/share/doc/packages/%{sca_common}
 install -m 644 man/*.1.gz $RPM_BUILD_ROOT/usr/share/man/man1
 install -m 644 man/*.5.gz $RPM_BUILD_ROOT/usr/share/man/man5
 
@@ -61,16 +62,16 @@ install -m 644 man/*.5.gz $RPM_BUILD_ROOT/usr/share/man/man5
 %dir /opt
 %dir /etc/opt
 %dir /var/opt
-%dir /opt/%{name}/bin
-%dir /opt/%{name}
-%dir /etc/opt/%{name}
-%dir /var/opt/%{name}
-%dir /usr/share/doc/packages/%{name}
-/opt/%{name}/bin/*
-%config /etc/opt/%{name}/sdagent.conf
+%dir /opt/%{sca_common}/bin
+%dir /opt/%{sca_common}
+%dir /etc/opt/%{sca_common}
+%dir /var/opt/%{sca_common}
+%dir /usr/share/doc/packages/%{sca_common}
+/opt/%{sca_common}/bin/*
+%config /etc/opt/%{sca_common}/sdagent.conf
 %doc /usr/share/man/man1/*
 %doc /usr/share/man/man5/*
-%doc /usr/share/doc/packages/%{name}/*
+%doc /usr/share/doc/packages/%{sca_common}/*
 
 %changelog
 * Thu Dec 20 2013 jrecord@suse.com

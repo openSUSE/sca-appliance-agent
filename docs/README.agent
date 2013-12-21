@@ -1,0 +1,27 @@
+Installation Instructions:
+There is a two step process for installation. The broker server is installed first, followed by the agent server(s).
+The Supportconfig Diagnostic Pattern Database can optionally be installed.
+
+Broker Server
+	Must be previously installed per README.broker
+
+Agent Server
+	Minimum Installation Patterns:
+		Base System
+		Minimal System
+	Login as root to the Agent Server
+	Add the SCA Appliance repository
+		yast add-on
+		Click Add, http, Next
+			Repository Name: SCA Appliance
+			URL of the Repository: http://download.opensuse.org/repositories/Novell:/NTS:/SCA/openSUSE_12.3/
+		Click Next
+		Search phrase: sca-
+		Packages to Install: sca-agent, sca-patterns-* (findutils-locate is optional)
+		Click Accept and OK
+	WARNING: Make sure you have run setup-sdagent on the Broker Server before proceeding
+	Run sdagent-config
+	Install the Agent Server's root crontab (/usr/share/doc/packages/sca/sdagent.cron)
+	Logout of the Agent Server
+
+

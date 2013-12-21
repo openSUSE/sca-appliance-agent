@@ -1,0 +1,211 @@
+#!/bin/bash
+
+SVER=1.0.5
+
+##############################################################################
+#  sdagent-patterns - Supportconfig Analysis Agent Pattern Updater
+#  Copyright (C) 2013 SUSE LLC
+#
+# Description:  Maintains a current list of patterns from the public pattern
+#               repository.
+# Runs on:      Agent Server
+# Runs as user: sca
+# Modified:     2013 Dec 19
+#
+##############################################################################
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; version 2 of the License.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#  Authors/Contributors:
+#     Jason Record (jrecord@suse.com)
+#
+##############################################################################
+
+CURRENT_SCRIPT=$(basename $0)
+. /etc/opt/sca/sdagent.conf
+[ -s /etc/opt/sca/sdagent-patterns.conf ] && . /etc/opt/sca/sdagent-patterns.conf
+PAT_COUNT_PRE=0
+PAT_COUNT_POST=0
+PAT_COUNT_CHANGE=0
+PAT_COUNT=0
+SVN_FILE="${SCDIAG_HOME}/svn-change-list.txt"
+PATTERNS="${SCDIAG_HOME}/manifest.patterns"
+
+title() {
+	test $LOGLEVEL -ge $LOGLEVEL_NORMAL && clear
+	msg normal "SCDIAG_PATTERNS" "$CURRENT_SCRIPT v$SVER"
+}
+
+showHelp() {
+	[ -n "$1" ] && { echo "$1"; echo; }
+	echo "Usage: $CURRENT_SCRIPT [OPTIONS]"
+	echo "Description:"
+	echo "  Updates patterns from the OBS repository and checks the"
+	echo "  updates into the SCA appliance database."
+	echo
+	echo "Options:"
+	echo "  -h  This screen"
+	echo "  -u  Do not update patterns from the update repository, "
+	echo "      just check in current patterns."
+	echo
+}
+
+msg() {
+	FACLEVEL='info'
+	case $1 in
+	debug) SYSTEM_LOGGER=0; CURRENT_LOGLEVEL=$LOGLEVEL_DEBUG ;;
+	verbose) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_VERBOSE ;;
+	normal) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_NORMAL ;;
+	min*) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_MIN ;;
+	silent) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_SILENT ;;
+	*) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_MIN ;;
+	esac
+	shift
+	if [ $LOGLEVEL -ge $CURRENT_LOGLEVEL ]; then
+		if [ $SYSTEM_LOGGER -gt 0 ]; then
+			[ -n "$2" ] && logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[$$]: [$1] $2" || logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[$$]: $1"
+			if [ $LOGLEVEL -gt $LOGLEVEL_SILENT ]; then
+				printf "%-15s %s\n" "$1" "$2"
+			fi
+		else
+			printf "%-15s %s\n" "$1" "$2"
+		fi
+	fi
+}
+
+
+notifyAdmin() {
+	if [[ -x /usr/bin/mailx ]]; then
+		EVENT_STR=$1
+		shift
+		for SENDTO in $EMAIL_ADMIN
+		do
+			echo "$*" | /usr/bin/mailx -ns "Agent Pattern Alert: $EVENT_STR" $SENDTO
+		done
+	fi
+}
+
+agentAccess() {
+	# returns 0 NO_ACCESS, 1 INACTIVE, 2 ACTIVE
+	CHECK_AGENT_STATE=$(mysql -NB $DB_CONNECT -e "SELECT AgentState FROM Agents WHERE AgentID=$AGENT_ID")
+	RCODE=$?
+	if [ $RCODE -gt 0 ]; then
+		msg normal DB "ERROR Cannot access administrative database $DB_NAME on localhost"
+		RCODE=$AGENT_NOACCESS
+	else
+		case $CHECK_AGENT_STATE in
+		Active) RCODE=$AGENT_ACTIVE ;;
+		Error) RCODE=$AGENT_NOACCESS ;;
+		*) RCODE=$AGENT_INACTIVE ;;
+		esac
+		msg verbose ACCESS "Agent State '$CHECK_AGENT_STATE', setting agentAccess = $RCODE"
+	fi
+	return $RCODE
+}
+
+repoRefreshed() {
+	msg normal PATTERNS "Refreshing SCA Pattern Repository"
+	zypper --no-gpg-checks --non-interactive refresh &>/dev/null
+	RC=$?
+	if (( RC )); then
+		msg min ERROR "Cannot refresh pattern repository, zypper error $RC"
+		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Agent $AGENT_ID cannot refresh pattern repository' "ERROR: Failed to refresh pattern repository on AgentID $AGENT_ID"
+	fi
+	return $RC
+}
+
+updatePatterns() {
+	msg normal PATTERNS "Updating SCA Patterns"
+	zypper --no-gpg-checks --non-interactive update sca-patterns-* &>/dev/null
+	RC=$?
+	if (( RC )); then
+		msg min ERROR "Failed to update SCA patterns, zypper error $RC"
+		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Agent $AGENT_ID cannot update patterns from pattern repository' "ERROR: Failed to update patterns from the pattern repository on AgentID $AGENT_ID"
+	fi	
+	return $RC
+}
+
+REFRESH_PATTERNS=1
+while getopts ':hu' TMPOPT
+do
+	case $TMPOPT in
+		\:) title; showHelp "ERROR: Missing Argument -$OPTARG"; exit 1 ;; 
+		\?) title; showHelp "ERROR: Invalid Option -$OPTARG"; exit 2 ;;
+		h) title; showHelp; exit 0 ;;
+		u) REFRESH_PATTERNS=0 ;;
+	esac
+done
+
+PAT_COUNT_PRE=$(find $SPRSRC -type f -perm /100 | egrep -v '\.svn|/lib/' | sort | uniq | wc -l)
+if (( REFRESH_PATTERNS )); then
+	if repoRefreshed; then
+		updatePatterns
+	fi
+fi
+PAT_COUNT_POST=$(find $SPRSRC -type f -perm /100 | egrep -v '\.svn|/lib/' | sort | uniq | wc -l)
+PAT_COUNT_CHANGE=$(( PAT_COUNT_POST - PAT_COUNT_PRE ))
+PAT_COUNT=$PAT_COUNT_POST
+agentAccess
+AGENT_STATE=$?
+if [[ $AGENT_STATE -eq $AGENT_NOACCESS ]]; then
+	msg normal DB "Error: Insufficient database access, AGENT_STATE=$AGENT_STATE"
+	[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin "Agent Access" "ERROR Insufficient database access, AGENT_STATE=$AGENT_STATE"
+	exit 5
+else
+	if [ -d ${SPRSRC} ]; then
+		msg normal "v$SVER" "Pattern Pre-Configuration"
+		chmod 700 ${SPRSRC}
+		if [ -n "$AGENT_ID" ]; then
+			if (( PAT_COUNT > 0 )); then
+				RPM_MODS=$(rpm -qa | grep sca-patterns- | grep -v sca-patterns-scatool | cut -d- -f3 | sort)
+				LOCAL_COUNT=$(find ${SPRSRC}/local -type f -perm /100 | egrep -v '\.svn|/lib/' | sort | uniq | wc -l)
+				if (( $LOCAL_COUNT > 0 )); then
+					MODULES="$(echo $RPM_MODS) local"
+				else
+					MODULES=$(echo $RPM_MODS)
+				fi
+				AGENT_MSG="$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+				msg normal STATUS "$AGENT_MSG"
+				mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentMessage='$AGENT_MSG', Patterns=$PAT_COUNT WHERE AgentID=$AGENT_ID"
+				if [ $? -gt 0 ]; then
+					msg min ERROR "Failed to update AgentID $AGENT_ID"
+					[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Agent $AGENT_ID Update Failed' "ERROR: Failed to update AgentID $AGENT_ID"
+					exit 3
+				else
+					msg min PATTERNS "v$SVER -- $PAT_COUNT patterns checked in on Agent $AGENT_ID, New patterns: $PAT_COUNT_CHANGE"
+				fi
+			else
+				mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentMessage='Disabling Agent, No patterns found', Patterns=$PAT_COUNT, AgentState='Inactive' WHERE AgentID=$AGENT_ID"
+				if [ $? -gt 0 ]; then
+					msg min ERROR "Failed to update AgentID $AGENT_ID"
+					[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Agent $AGENT_ID Update Failed' "ERROR: Failed to update AgentID $AGENT_ID"
+					exit 3
+				else
+					msg min PATTERNS "v$SVER -- $PAT_COUNT patterns on Agent $AGENT_ID"
+					[ $EMAIL_LEVEL -gt $EMAIL_MIN ] && notifyAdmin "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"					
+				fi
+			fi
+		else
+			msg min CONFIG "Run sdagent-config on $SERVER_NAME"
+			[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Run sdagent-config' "Run sdagent-config on $SERVER_NAME"
+			exit 4
+		fi
+	else
+		msg min ERROR "Error: Invalid pattern directory: $SPRSRC"
+		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Invalid pattern directory' "Error: Invalid pattern directory: $SPRSRC"
+		exit 1
+	fi
+fi
+exit 0
+

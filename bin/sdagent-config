@@ -1,0 +1,203 @@
+#!/bin/bash
+
+SVER=1.0.1
+
+##############################################################################
+#  sdagent-config - Supportconfig Analysis Agent Configuration Tool
+#  Copyright (C) 2013 SUSE LLC
+#
+# Description:  Configures the Agent Server to communicate with the Broker 
+#               Server.
+# Runs on:      Agent Server
+# Modified:     2013 Dec 12
+#
+##############################################################################
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; version 2 of the License.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#  Authors/Contributors:
+#     Jason Record (jrecord@suse.com)
+#
+##############################################################################
+
+DB_USER='sdagent'
+DB_NAME='ServerDiagnostics'
+AGENT_CONFIG="/etc/opt/sca/sdagent.conf"
+DEF_CRON="/usr/share/doc/packages/sca/sdagent.cron"
+CURRENT_SCRIPT=$(basename $0)
+
+##############################################################################
+# Functions: Local
+##############################################################################
+
+title() {
+	echo "####################################################################"
+	echo "# SCA Agent Configuration Tool v$SVER"
+	echo "####################################################################"
+	echo
+}
+
+showHelp() {
+	clear
+	title
+	[ -n "$1" ] && { echo "$1"; echo; }
+	echo "Usage: $CURRENT_SCRIPT -h <broker> -p <sdagent_password> -i <input_url> -e <admin_email> [OPTIONS]"
+	echo 'Description:'
+	echo '  Configures a new agent that will run sdagents.'
+	echo
+	echo 'Options:'
+	echo '  -H Show this screen and exit'
+	echo '  -c Do not clear the screen'
+	echo "  -h <str> Broker hostname, this is where $DB_NAME is located"
+	echo '  -p <str> MySQL sdagent password'
+	echo "  -i <str> Input Source URL"
+	echo "     Example: ftp://ftp.server.org/incoming"
+	echo "              file:///srv/ftp/"
+	echo "  -o <str> Output Source URL"
+	echo "     Default: Same as Input Source URL"
+	echo "  -l <str> Overrides local hostname"
+	echo "  -e <email> Admin email address"
+	echo "  -s <email> Status report email address"
+	echo "     Default: Same as Admin email address"
+	echo "  -t Enable html report post and email, Default: disabled"
+	echo
+}
+
+testURL() {
+	TURL="$2"
+	TYPE="$3"
+	UDIR="$4"
+	printf "Testing $1 URL $TURL ... "
+	case $TYPE in
+	file)
+		if [ ! -d $UDIR ]; then
+			RCODE=10
+		fi
+		;;
+	ftp)
+		curl -m 60 -l ${TURL}/ &> /dev/null
+		RCODE=$?
+		;;
+	*) RCODE=2 ;;
+	esac
+	if (( RCODE )); then
+		echo "Failed, RC=$RCODE"
+		exit 8
+	else
+		echo "Success"
+	fi
+}
+
+main() {
+	if ping -c1 -w1 $OPT_BROKER &>/dev/null; then
+		DB_CONNECT="-h $OPT_BROKER -u $DB_USER -p${OPT_PASS} $DB_NAME"
+		test -z "$SERVER_NAME" && SERVER_NAME=$(hostname)
+		mysql $DB_CONNECT -e "SELECT AgentID,Hostname FROM Agents WHERE ( Hostname LIKE \"${SERVER_NAME}%\" )"
+		echo
+		AGENT_ID=$(mysql -NB $DB_CONNECT -e "SELECT AgentID FROM Agents WHERE ( Hostname LIKE \"${SERVER_NAME}%\" )" 2>/dev/null)
+		if [ -z "$AGENT_ID" ]; then
+			echo "ERROR: Cannot obtain AgentID on $OPT_BROKER for $SERVER_NAME"
+			echo "Consider running setup-sdagent on the Broker server."
+			echo
+			exit 2
+		else
+			if [ -e $AGENT_CONFIG ]; then
+				OPT_INSRC_TYPE=$(echo $OPT_INSRC | cut -d\: -f1) 
+				OPT_INSRC_HOST=$(echo $OPT_INSRC | cut -d\/ -f3) 
+				OPT_INSRC_DIR=$(echo $OPT_INSRC | sed -e "s!${OPT_INSRC_TYPE}://${OPT_INSRC_HOST}!!g")
+				testURL Input $OPT_INSRC $OPT_INSRC_TYPE $OPT_INSRC_DIR
+
+				OPT_OUTSRC_TYPE=$(echo $OPT_OUTSRC | cut -d\: -f1) 
+				OPT_OUTSRC_HOST=$(echo $OPT_OUTSRC | cut -d\/ -f3) 
+				OPT_OUTSRC_DIR=$(echo $OPT_OUTSRC | sed -e "s!${OPT_OUTSRC_TYPE}://${OPT_OUTSRC_HOST}!!g")
+				testURL Output $OPT_OUTSRC $OPT_OUTSRC_TYPE $OPT_INSRC_DIR
+				OPT_EMAIL_ADMIN=$(echo $OPT_EMAIL_ADMIN | sed -e "s!,! !g;s!  ! !g")
+				sed -i -e "s!^AGENT_ID=.*!AGENT_ID=${AGENT_ID}!;s!^DB_PASS=.*!DB_PASS='$OPT_PASS'!;s!^DB_HOSTNAME=.*!DB_HOSTNAME='${OPT_BROKER}'!" $AGENT_CONFIG
+				sed -i -e "s!^INSRC=.*!INSRC='${OPT_INSRC}'!;s!^OUTSRC=.*!OUTSRC='${OPT_OUTSRC}'!" $AGENT_CONFIG
+				sed -i -e "s!^INSRC_TYPE=.*!INSRC_TYPE='${OPT_INSRC_TYPE}'!;s!^INSRC_HOST=.*!INSRC_HOST='${OPT_INSRC_HOST}'!;s!^INSRC_DIR=.*!INSRC_DIR='${OPT_INSRC_DIR}'!" $AGENT_CONFIG
+				sed -i -e "s!^OUTSRC_TYPE=.*!OUTSRC_TYPE='${OPT_OUTSRC_TYPE}'!;s!^OUTSRC_HOST=.*!OUTSRC_HOST='${OPT_OUTSRC_HOST}'!;s!^OUTSRC_DIR=.*!OUTSRC_DIR='${OPT_OUTSRC_DIR}'!" $AGENT_CONFIG
+				sed -i -e "s!^EMAIL_ADMIN=.*!EMAIL_ADMIN='${OPT_EMAIL_ADMIN}'!;s!^EMAIL_REPORT=.*!EMAIL_REPORT='${OPT_EMAIL_REPORT}'!" $AGENT_CONFIG
+				if (( OPT_POST_REPORT )); then
+					sed -i -e "s!^POST_REPORT=.*!POST_REPORT=1!;s!STATUS_NOTIFY_LEVEL=.*!STATUS_NOTIFY_LEVEL=\$STATUS_SUCCESS!" $AGENT_CONFIG
+				fi
+				/opt/sca/bin/sdagent-patterns -o &>/dev/null
+			else
+				echo "ERROR: File not found: $AGENT_CONFIG"
+				echo
+				exit 3
+			fi
+		fi
+	else
+		echo "ERROR: Cannot ping $OPT_BROKER"
+		echo
+		exit 1
+	fi
+	mysql $DB_CONNECT -e "UPDATE Agents SET AgentState='Active', AgentEvent=NOW(), AgentMessage='Confirm cron entries' WHERE AgentID=$AGENT_ID"
+	if [ $? -gt 0 ]; then
+		echo
+		exit 4
+	else
+		echo
+		echo "Agent Configuration Complete"
+		echo "--------------------------------------"
+		echo "Agent:    $SERVER_NAME"
+		echo "AgentID:  $AGENT_ID"
+		echo "Password: Set"
+		echo
+		echo "Add cron entries"
+		echo "  Run 'crontab $DEF_CRON' to replace the cron"
+		echo "  Run 'crontab -e sca -e' to manually edit the cron"
+		echo
+		[ -s $DEF_CRON ] && cat $DEF_CRON
+		echo
+	fi
+}
+
+OPT_BROKER=''
+OPT_PASS=''
+OPT_INSRC=''
+OPT_OUTSRC=''
+OPT_EMAIL_ADMIN=''
+OPT_EMAIL_REPORT=''
+OPT_POST_REPORT=0
+SERVER_NAME=''
+CLEAR=1
+while getopts ':Hch:e:i:l:o:p:ts:' TMPOPT
+do
+	case $TMPOPT in
+		\:) showHelp "ERROR: Missing Argument -$OPTARG"; exit 1 ;;
+		\?) showHelp "ERROR: Invalid Option -$OPTARG"; exit 2 ;;
+		H) showHelp; exit 0 ;;
+		c) CLEAR=0 ;;
+		h) OPT_BROKER=$OPTARG ;;
+		i) OPT_INSRC=$OPTARG ;;
+		l) SERVER_NAME=$OPTARG ;;
+		o) OPT_OUTSRC=$OPTARG ;;
+		p) OPT_PASS=$OPTARG ;;
+		e) OPT_EMAIL_ADMIN=$OPTARG ;;
+		s) OPT_EMAIL_REPORT=$OPTARG ;;
+		t) OPT_POST_REPORT=1 ;;
+	esac
+done
+[ -z "$OPT_BROKER" ] && { showHelp "ERROR: Missing Broker hostname"; exit 1; }
+[ -z "$OPT_PASS" ] && { showHelp "ERROR: Missing MySQL sdagent Password"; exit 1; }
+[ -z "$OPT_INSRC" ] && { showHelp "ERROR: Missing Input Source URL"; exit 1; }
+[ -z "$OPT_OUTSRC" ] && OPT_OUTSRC=$OPT_INSRC
+[ -z "$OPT_EMAIL_ADMIN" ] && { showHelp "ERROR: Missing Admin email address"; exit 1; }
+[ -z "$OPT_EMAIL_REPORT" ] && OPT_EMAIL_REPORT=$OPT_EMAIL_ADMIN
+
+[ $CLEAR -gt 0 ] && clear
+title
+main
+

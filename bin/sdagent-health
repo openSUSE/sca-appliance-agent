@@ -1,0 +1,189 @@
+#!/bin/bash
+
+SVER=1.0.0
+
+##############################################################################
+#  sdagent-healthcheck - Supportconfig Analysis Agent Health Tool
+#  Copyright (C) 2013 SUSE LLC
+#
+# Description:  Monitors the current health of Agent Server and it's Agent
+#               Worker Threads.
+# Runs on:      Agent Server
+# Modified:     2013 Sep 23
+#
+##############################################################################
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; version 2 of the License.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#  Authors/Contributors:
+#     Jason Record (jrecord@suse.com)
+#
+##############################################################################
+
+CURRENT_SCRIPT=$(basename $0)
+. /etc/opt/sca/sdagent.conf
+[ -s /etc/opt/sca/sdagent-health.conf ] && . /etc/opt/sca/sdagent-health.conf
+
+msg() {
+	FACLEVEL='info'
+	case $1 in
+	debug) SYSTEM_LOGGER=0; CURRENT_LOGLEVEL=$LOGLEVEL_DEBUG ;;
+	verbose) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_VERBOSE ;;
+	normal) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_NORMAL ;;
+	min*) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_MIN ;;
+	silent) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_SILENT ;;
+	*) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_MIN ;;
+	esac
+	shift
+	if [ $LOGLEVEL -ge $CURRENT_LOGLEVEL ]; then
+		if [ $SYSTEM_LOGGER -gt 0 ]; then
+			[ -n "$2" ] && logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[$$]: [$1] $2" || logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[$$]: $1"
+			if [ $LOGLEVEL -gt $LOGLEVEL_SILENT ]; then
+				printf "%-15s %s\n" "$1" "$2"
+			fi
+		else
+			printf "%-15s %s\n" "$1" "$2"
+		fi
+	fi
+}
+
+notifyAdmin() {
+	EVENT_STR=$1
+	shift
+	for SENDTO in $EMAIL_ADMIN
+	do
+		echo "$*" | /usr/bin/mailx -ns "Agent Health Check: $EVENT_STR" $SENDTO
+	done
+}
+
+agentActive() {
+	if echo $AGENT_ID | grep '[[:digit:]]' &> /dev/null; then
+		AGENT_STATE=$(mysql -NB $DB_CONNECT -e "SELECT AgentState FROM Agents WHERE AgentID='$AGENT_ID'")
+		if [ "$AGENT_STATE" = "Active" ]; then
+			msg normal AGENT "Active: Agent $AGENT_ID on $SERVER_NAME"
+			return 0
+		else
+			msg normal AGENT "NOT Active: Agent $AGENT_ID on $SERVER_NAME"
+			return 1
+		fi
+	else
+		msg normal AGENT "Agent ID not configured on $SERVER_NAME"
+		return 1
+	fi
+}
+
+checkWorkers() {
+	DATABASE_WORKERS=$(mysql -NB $DB_CONNECT -e "SELECT WorkerID FROM AgentWorkers WHERE ArchiveAssigned IS NOT NULL AND WorkersAgentID='$AGENT_ID'")
+	PIDS=$(ps axwwo pid,cmd | grep 'bin/sdagent ' | grep "\-i $AGENT_ID," | grep -v BatchMode | wc -l)
+	if [ $? -eq 0 ]; then
+		if [ -z "$DATABASE_WORKERS" ]; then
+			# remove all the sdagent work directory data from the killed orphaned sdagents
+			rm -rf ${SCDIAG_HOME}/worker*
+			DIRACT='Cleaned'
+		else
+			# Normal healthy conditions, the database and the running sdagents match
+			DIRACT='Active'
+		fi
+	else
+		DIRACT='Skipped'
+	fi
+	THREAD_MSG="Thread Dirs: $DIRACT, Agent PIDs: $PIDS"
+	msg normal AGENT "$THREAD_MSG"
+}
+
+checkDiskSpace() {
+	DISK_FULL=$(df -h ${SCDIAG_HOME}/ | grep -v Filesystem | awk '{print $5}' | cut -d% -f1)
+	if [ $DISK_FULL -ge $MAX_DISK_HEALTH ]; then
+		mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentState='Error', AgentMessage='Disk space full for $SCDIAG_HOME' WHERE AgentID='$AGENT_ID'" &>/dev/null
+		msg min AGENT "Deactivated: Disk Full at ${DISK_FULL}% for $SCDIAG_HOME"
+	fi
+	msg normal AGENT "Disk Space Used ${DISK_FULL}%"
+}
+
+updateCPUtil() {
+	CPU_IDLE=$(vmstat 1 2 | tail -1 | awk '{print $15}')
+	CPU_UTIL=$((100-CPU_IDLE))
+	mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), CPUCurrent=$CPU_UTIL WHERE AgentID=$AGENT_ID"
+	if [ $? -gt 0 ]; then
+		msg normal AGENT "SQL ERROR: Failed to update AgentID $AGENT_ID"
+		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Agent $AGENT_ID Update Failed' "ERROR: Failed to update AgentID $AGENT_ID"
+	else
+		msg normal AGENT "CPU Utilization: ${CPU_UTIL}%"
+	fi
+}
+
+activateAgent() {
+	# kill all current sdagent threads
+	PIDS=$(ps axwwo pid,cmd | grep 'bin/sdagent ' | grep "\-i $AGENT_ID," | grep -v BatchMode | awk '{print $1}')
+	kill $PIDS &> /dev/null
+	# clean up work directories
+	rm -rf ${SCDIAG_HOME}/worker*
+	# reset archives to new or retry
+	RESET_ARCHIVES=$(mysql -NB $DB_CONNECT -e "SELECT ArchiveAssigned FROM AgentWorkers WHERE WorkersAgentID='$AGENT_ID'")
+	if [ -n "$RESET_ARCHIVES" ]; then
+		for ARCH in "$RESET_ARCHIVES"
+		do
+			msg normal AGENT "Reassigning Archive $ARCH"
+			mysql $DB_CONNECT -e "UPDATE Archives SET ArchiveEvent=NOW(), ArchiveState='Retry', ArchiveMessage='Health Check Requires Reassignment' WHERE ArchiveID='$ARCH'"
+		done
+		# clear all worker thread db entries
+		msg normal AGENT "Releasing worker threads"
+		mysql $DB_CONNECT -e "UPDATE AgentWorkers SET ArchiveAssigned=NULL WHERE WorkersAgentID='$AGENT_ID'"
+	fi
+	# clear agent entry and mark active
+	mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentState='Active', ThreadsActive=0, AgentMessage='Activated by Agent' WHERE AgentID='$AGENT_ID'"
+	msg normal AGENT "Activated by Agent Health Check"
+	[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin "Activated Agent $SERVER_NAME" "Server $SERVER_NAME activated from $AGENT_STATE state by agent health check"
+}
+
+###########################################################################################################
+### main
+###########################################################################################################
+
+[ -s /etc/HOSTNAME ] && SERVER_NAME=$(head -1 /etc/HOSTNAME) || SERVER_NAME=$(hostname)
+mysql $DB_CONNECT -e "USE $DB_NAME" &>/dev/null
+if [ $? -gt 0 ]; then
+	msg normal SQL "ERROR: Agent $SERVER_NAME cannot connect to the $DB_NAME database on $DB_HOSTNAME"
+	[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin "DB Connection Failed" "ERROR: Agent $SERVER_NAME cannot connect to the $DB_NAME database on $DB_HOSTNAME"
+	exit 2
+else
+	if echo $AGENT_ID | grep '[[:digit:]]' &> /dev/null; then
+		if agentActive; then
+			checkWorkers
+			checkDiskSpace
+			updateCPUtil
+			mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentMessage='Health C:${CPU_UTIL}% D:${DISK_FULL}% W:${DIRACT} #:${PIDS}' WHERE AgentID='$AGENT_ID'"
+			msg min AGENT "Health Check: CPU ${CPU_UTIL}%, Disk ${DISK_FULL}%, ${THREAD_MSG}"
+		else
+			if [ "$AGENT_STATE" = "Stale" ]; then
+				activateAgent
+				STATE_NOW="Activated"
+				checkDiskSpace
+				updateCPUtil
+				msg min AGENT "Health Check: CPU ${CPU_UTIL}%, Disk ${DISK_FULL}%, Agent: ${STATE_NOW}"
+			else
+				msg normal AGENT "Not Activated: Must be in a Stale state"
+				STATE_NOW="Not Activated"
+				checkDiskSpace
+				updateCPUtil
+				msg min AGENT "Health Check: CPU ${CPU_UTIL}%, Disk ${DISK_FULL}%, Agent: ${STATE_NOW}"
+			fi
+		fi
+	else
+		msg min CONFIG "Run sdagent-config on $SERVER_NAME"
+		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Run sdagent-config' "Run sdagent-config on $SERVER_NAME"
+		exit 4
+	fi
+fi
+

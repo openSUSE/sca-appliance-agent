@@ -1,0 +1,46 @@
+.TH sdagent-worker 1 "21 Feb 2013" "sdagent-worker" "Supportconfig Diagnostic Manual"
+.SH NAME
+sdagent-worker - Supportconfig Diagnostic Agent Worker Thread
+.SH SYNOPSIS
+sdagent-worker -l LOGLEVEL_WORKER  -i "AGENT_ID,WORKER_ID,ARCHIVE_ID" -p WORKER_HOME -a ARCHIVE_FILE
+.SH DESCRIPTION
+Downloads, extracts and analyzes individual supportconfig archives, then posts the analysis results into the MySQL database and creates an SCA report if requested. The agent worker thread is intended to be launched by \fBsdagent\fR. 
+.SH OPTIONS
+.TP
+\fB\-h\fR
+Show this help screen.
+.TP
+\fB\-l\fR \fIinteger\fR
+Agent log level. Used to override the LOGLEVEL defined in \fBsdagent.conf\fR. A value of 0 turns off logging, and 4 is debug.
+.RS
+Valid Range: 0-4
+.RE
+.TP
+\fB\-p\fR \fIstring\fR
+Agent worker's home directory.
+.TP
+\fB\-a\fR \fIstring\fR
+The archive file name.
+.TP
+\fB\-i\fR \fIlist\fR
+MySQL IDs for the assigned agent, agent worker and archive. It is a comma separated list in the format AGENT_ID,WORKER_ID,ARCHIVE_ID.
+.PD
+.SH AUTHOR
+Jason Record <jrecord@suse.com>
+.SH COPYRIGHT
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; version 2 of the License.
+.PP
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.SH SEE ALSO
+.BR sdagent (1)
+.BR sdagent.conf (5)
+

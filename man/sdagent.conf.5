@@ -1,0 +1,251 @@
+.TH sdagent.conf 5 "05 Mar 2013" "sdagent.conf" "Supportconfig Diagnostic Manual"
+.SH NAME
+sdagent.conf - Supportconfig Diagnostic Agent configuration file
+.SH DESCRIPTION
+The \fBsdagent.conf\fR file has default values for variables used by several Agent Server applications. The following applications use the \fBsdagent.conf\fR file: \fBsdagent\fR, \fBsdagent-worker\fR, \fBsdagent-patterns\fR.
+.SH GLOBAL VARIABLES
+.TP
+INSRC
+Input source. The complete input source location of supportconfig archives to be processed. This URL is broken into individual components by \fBsdagent-config\fR for faster processing because \fBsdagent\fR and its worker threads are run frequently. The components are INSRC_TYPE, INSRC_HOST and INSRC_DIR.
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.RS
+Examples:
+.RE
+.RS
+.B ftp://ftp.novell.com/incoming
+.RE
+.RS
+.B file:///srv/ftp
+.RE
+.TP
+INSRC_TYPE
+Input source type. This is the type component of the INSRC. There are two supported input source types: ftp and file
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.TP
+INSRC_HOST
+Input source host. This is the hostname component of the INSRC.
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.TP
+INSRC_DIR
+Input source directory. This is the directory component of the INSRC. 
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.TP
+OUTSRC
+Output source. The complete output source location for HTML generated reports to be posted. This URL is broken into individual components by \fBsdagent-config\fR for faster processing because \fBsdagent\fR and its worker threads are run frequently. The components are OUTSRC_TYPE, OUTSRC_HOST and OUTSRC_DIR.
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.RS
+Examples:
+.RE
+.RS
+.B ftp://ftp.novell.com/incoming
+.RE
+.RS
+.B file:///srv/ftp
+.RE
+.TP
+OUTSRC_TYPE
+Output source type. This is the type component of the OUTSRC. There are two supported input source types: ftp and file
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.TP
+OUTSRC_HOST
+Output source host. This is the hostname component of the OUTSRC.
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.TP
+OUTSRC_DIR
+Output source directory. This is the directory component of the OUTSRC. 
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.TP
+AGENT_ID
+The Agent Server's MySQL ID that identifies it in the database on the Broker Server.
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.TP
+AGENT_PRIORITY_GROUP
+When multiple Agent Servers are processing archives, you may want some Agent Servers to handle most of the work, while others are backup in case the primary Agent Servers are too busy. The smaller the number the higher the priority. You can have multiple agents with the same priority number. This value causes the \fBsdagent\fR to delay assigning archives to its worker threads. The value is measured in seconds. So you might want two Agent Servers to wait 5 seconds before assigning archives, which would give Agent Servers with a lower priority access to the archives sooner. 
+.RS
+Default: 0
+.RE
+.TP
+DELAY_RETRY
+The \fBsdagent-worker\fR waits DELAY_RETRY seconds before attempting to download or upload files. It applies to ftp INSRC_TYPE and OUTSRC_TYPE only.
+.RS
+Default: 20
+.RE
+.TP
+MAX_HOST_RETRY
+The maximum number of retry attempts to connect to the ftp INSRC or OUTSRC waiting DELAY_RETRY seconds each time. By default the \fBsdagent-worker\fR will attempt 6 times waiting 20 seconds each try when downloading or uploading files. If the agent worker thread fails to connect, it will mark the archive for retry. The archive will be reprocessed according to MAX_ARCHIVE_RETRY. 
+.RS
+Default: 6
+.RE
+.TP
+MAX_ARCHIVE_RETRY=8
+The maximum number of times to retry an archive analysis. When an archive cannot be processed for some reason, the agent may attempt to retry the analysis. The number of times an archive has been retried is logged in the Archives table and the RetryCount field. Once that field value exceeds the MAX_ARCHIVE_RETRY, the agent will mark the archive with an Error and stop attempting the analysis.
+.RS
+Default: 8
+.RE
+.TP
+MAX_DISK_HEALTH
+The maximum percent of used disk space allowed before declaring the Agent Server unhealthy. The Agent Server will be marked inactive until disk space is freed and the agent reset using \fBdb\fR(1).
+.RS
+Default: 98
+.RE
+.TP
+POST_REPORT=0
+When set to 1, the \fBsdagent-worker\fR will build an HTML report file and post it into the OUTSRC directory.
+.RS
+Default: 0
+.RE
+.TP
+ALL_PATTERNS
+When an analysis pattern results in an error or not applicable result, it is excluded from the MySQL database. The inapplicable results are usually excluded because they take up too much space in the database. However, if you want them logged in the database, change this value to 1.
+.RS
+Default: 0
+.RE
+.TP
+ARCHIVE_MODE
+Once the \fBsdagent-worker\fR downloads and processes the supportconfig archive, it usually deletes it. Setting this option to 1 tells the agent worker thread to keep the file on the local filesystem. 
+.RSpriority
+Default: 0
+.RE
+.TP
+SCDIAG_HOME
+The agent's home working directory.
+.RS
+Default: /var/opt/scdiag
+.RE
+.TP
+REPO_URL
+The google code SVN repository for the Server Diagnostic Pattern database. These are the perl scripts that parse the supportconfig data to determine if known issues exist.
+.RS
+Default: https://server-diagnostic-patterns.googlecode.com/svn/stable/1.0/
+.RE
+.RS
+\fBWARNING\fR: Do not change this value.
+.RE
+.TP
+FPAT_URL
+The google code SVN repository for the Server Diagnostic Pattern database for viewing pattern files.
+.RS
+Default: https://code.google.com/p/server-diagnostic-patterns/source/browse/stable/1.0
+.RE
+.RS
+\fBWARNING\fR: Do not change this value.
+.RE
+.TP
+SPRSRC="${SCDIAG_HOME}/patterns/"
+The supportconfig pattern SVN repository directory. The perl patterns used to analyze the supportconfig text files are located here. 
+.RS
+Default: ${SCDIAG_HOME}/patterns or /var/opt/scdiag/patterns/
+.RE
+.TP
+PATTERNS
+The supportconfig pattern repository manifest. It contains a list of all the usable patterns found in SPRSRC and is updated by \fBsdagent-patterns\fR(1).
+.RS
+Default: ${SCDIAG_HOME}/manifest.patterns or /var/opt/scdiag/manifest.patterns
+.RE
+.TP
+PERL5LIB
+The Perl library location for the supportconfig pattern repository. The perl patterns \fBsdagent-worker\fR uses requires perl libraries located in this directory.
+.RS
+Default: ${SPRSRC} or /var/opt/scdiag/patterns/
+.RE
+.TP
+META_LINKS
+Defines the required metadata links for pattern processing.
+.RS
+Default: TID SECURITY BUG VIDEO SCRIPT MISC COOLSOLUTION PATCH
+.RE
+.RS
+\fBWARNING\fR: Do not change this value.
+.RE
+.TP
+EMAIL_ADMIN
+The administrator email notification address. Any email alerts generated by \fBsdagent\fR or \fBsdagent-worker\fR will be sent to this address. 
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.TP
+EMAIL_REPORT
+The report email notification address. If STATUS_NOTIFY_LEVEL is set, the HTML report file will be emailed to the EMAIL_REPORT user.
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.TP
+DB_USER
+The MySQL database user for all Agent Server database operations. The \fBsdagent\fR user is included in the schema and created by default.
+.RS
+\fBWARNING:\fR Do not change this value.
+.RE
+.RS
+Default: sdagent
+.RE
+.TP
+DB_PASS
+The DB_USER password for the \fBsdagent\fR MySQL database user.
+.RS
+Run \fBsdagent-config\fR to configure.
+.RE
+.TP
+DB_NAME
+The main MySQL database name for the Supportconfig Diagnostic Tool infrastructure located on the Broker Server.
+.RS
+\fBWARNING:\fR Do not change this value.
+.RE
+.RS
+Default: ServerDiagnostics
+.RE
+.TP
+DB_CONNECT
+MySQL connection information. Includes the DB_USER, DB_PASS and DB_NAME necessary for the Agent Server to access the ServerDiagnostics database on the Broker Server.
+.TP
+LOGLEVEL
+The agent log level. Valid options are LOGLEVEL_SILENT, LOGLEVEL_MIN, LOGLEVEL_NORMAL, LOGLEVEL_VERBOSE and LOGLEVEL_DEBUG.
+.RS
+Default: LOGLEVEL_MIN
+.RE
+.TP
+EMAIL_LEVEL
+The level of alerts sent to the administrator's email. Valid options are EMAIL_SILENT, EMAIL_MIN, EMAIL_NORMAL, EMAIL_VERBOSE and EMAIL_DEBUG. 
+.RS
+Default: EMAIL_MIN
+.RE
+.TP
+STATUS_NOTIFY_LEVEL
+The minimum severity level required to justify sending an email report to the EMAIL_REPORT user. Valid options in order from least to greatest are STATUS_OFF, STATUS_SUCCESS, STATUS_RECOMMEND, STATUS_WARNING and STATUS_CRITICAL.
+.PD
+.SH AUTHOR
+Jason Record <jrecord@suse.com>
+.SH COPYRIGHT
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; version 2 of the License.
+.PP
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.SH SEE ALSO
+.BR \fBsdagent\fR (1)
+.BR \fBsdagent-worker\fR (1)
+.BR sdagent-config (1)

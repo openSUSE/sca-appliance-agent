@@ -1,0 +1,3 @@
+-*/2 * * * * /opt/sca/bin/sdagent  &>/dev/null # Agent master process
+-0 0 * * * /opt/sca/bin/sdagent-patterns  &>/dev/null # Nightly pattern updates
+

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.1
+SVER=1.0.2
 
 ##############################################################################
 #  sdagent - Supportconfig Analysis Agent Worker Thread
@@ -10,7 +10,7 @@ SVER=1.0.1
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
 # Runs as user: sca
-# Modified:     2013 Dec 12
+# Modified:     2013 Dec 24
 #
 ##############################################################################
 #
@@ -368,6 +368,7 @@ archiveIdentitySQL() {
 	echo "UPDATE Archives SET " >> $IMPORT_FILE
 	echo " ArchiveDate='$ARCH_RUN_DATE'," >> $IMPORT_FILE
 	echo " ArchiveTime='$ARCH_RUN_TIME'," >> $IMPORT_FILE
+	echo " FileLocation='$ARCH_LOCATION'," >> $IMPORT_FILE
 	echo " SRNum=$SRNUM," >> $IMPORT_FILE
 	echo " ServerName=$HOST_NAME," >> $IMPORT_FILE
 	echo " VersionKernel=$VERKERN," >> $IMPORT_FILE

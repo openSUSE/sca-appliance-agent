@@ -14,7 +14,7 @@ Vendor:       SUSE Support
 License:      GPLv2
 Autoreqprov:  on
 Version:      1.2
-Release:      1.131220.PTF.1
+Release:      1.131224.PTF.1
 Source:       %{name}-%{version}.tar.gz
 BuildRoot:    %{_tmppath}/%{name}-%{version}
 Buildarch:    noarch
@@ -74,6 +74,11 @@ install -m 644 man/*.5.gz $RPM_BUILD_ROOT/usr/share/man/man5
 %doc /usr/share/doc/packages/%{sca_common}/*
 
 %changelog
+* Tue Dec 24 2013 jrecord@suse.com
+- annotated sdagent.conf
+- added ARCH_LOCATION to sdagent.conf
+- sdagent-worker inserts ARCH_LOCATION into SQL import file
+
 * Thu Dec 20 2013 jrecord@suse.com
 - separated as individual RPM package
 - sends email for pattern updates when $EMAIL_LEVEL -gt $EMAIL_MIN

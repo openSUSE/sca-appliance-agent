@@ -14,17 +14,12 @@ Vendor:       SUSE Support
 License:      GPLv2
 Autoreqprov:  on
 Version:      1.2
-Release:      1.131224.PTF.1
+Release:      1.140102.PTF.1
 Source:       %{name}-%{version}.tar.gz
 BuildRoot:    %{_tmppath}/%{name}-%{version}
 Buildarch:    noarch
-Requires:     curl
-Requires:     /bin/logger
-Requires:     /usr/bin/mysql
-Requires:     /usr/bin/sed
-Requires:     /usr/bin/awk
-Requires:     /bin/ping
 Requires:     /usr/bin/vmstat
+Requires:     sca-appliance-common
 Requires:     sca-patterns-base
 
 %description
@@ -74,6 +69,9 @@ install -m 644 man/*.5.gz $RPM_BUILD_ROOT/usr/share/man/man5
 %doc /usr/share/doc/packages/%{sca_common}/*
 
 %changelog
+* Thu Jan 02 2014 jrecord@suse.com
+- separated sca-appliance-common files
+
 * Tue Dec 24 2013 jrecord@suse.com
 - annotated sdagent.conf
 - added ARCH_LOCATION to sdagent.conf

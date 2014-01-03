@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.5
+SVER=1.0.6
 
 ##############################################################################
 #  sdagent-patterns - Supportconfig Analysis Agent Pattern Updater
@@ -10,7 +10,7 @@ SVER=1.0.5
 #               repository.
 # Runs on:      Agent Server
 # Runs as user: sca
-# Modified:     2013 Dec 19
+# Modified:     2014 Jan 03
 #
 ##############################################################################
 #

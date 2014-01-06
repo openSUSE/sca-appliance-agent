@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.2
+SVER=1.0.3
 
 ##############################################################################
 #  sdagent - Supportconfig Analysis Agent Worker Thread
@@ -10,7 +10,7 @@ SVER=1.0.2
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
 # Runs as user: sca
-# Modified:     2013 Dec 24
+# Modified:     2014 Jan 06
 #
 ##############################################################################
 #
@@ -313,39 +313,39 @@ archiveIdentitySQL() {
 	msg debug ' SQL-FILE' "archiveIdentitySQL Import File: $IMPORT_FILE"
 	msg debug ' SQL-HEADER' "archiveIdentitySQL Creating Archive Identity Headers"
 	shopt -s nocasematch
-	[ -n "$KERNEL_VERSION" ] && VERKERN="'$KERNEL_VERSION'" || VERKERN="NULL"
-	[ -n "$SCRIPT_VERSION" ] && VERSUPT="'$SCRIPT_VERSION'" || VERSUPT="NULL"
-	if [ -n "$DISTRO" ]; then
+	[[ -n "$KERNEL_VERSION" ]] && VERKERN="'$KERNEL_VERSION'" || VERKERN="NULL"
+	[[ -n "$SCRIPT_VERSION" ]] && VERSUPT="'$SCRIPT_VERSION'" || VERSUPT="NULL"
+	if [[ -n "$DISTRO" ]]; then
 		ARCH=$(echo $DISTRO | cut -d\( -f2 | cut -d\) -f1)
-		[ -n "$ARCH" ] && ARCH="'$ARCH'" || ARCH="NULL"
+		[[ -n "$ARCH" ]] && ARCH="'$ARCH'" || ARCH="NULL"
 	else
 		ARCH="NULL"
 	fi
-	[ -n "$SERVER_NAME" ] && HOST_NAME="'$SERVER_NAME'" || HOST_NAME="NULL"
-	[ -n "$VIRT_HARD" ] && HARDWARE="'$VIRT_HARD'" || HARDWARE="NULL"
+	[[ -n "$SERVER_NAME" ]] && HOST_NAME="'$SERVER_NAME'" || HOST_NAME="NULL"
+	[[ -n "$VIRT_HARD" ]] && HARDWARE="'$VIRT_HARD'" || HARDWARE="NULL"
 	DIST="${DISTRO%% (*}"
-	if [ -z "$DIST" ]; then
+	if [[ -z "$DIST" ]]; then
 		DIST="NULL"
 	else
 		DIST="'$DIST'"
 	fi
-	if [ "$SPLEVEL" == "None" ]; then
+	if [[ "$SPLEVEL" == "None" ]]; then
 		DISTSP=0
-	elif [ -n "$SPLEVEL" ]; then
+	elif [[ -n "$SPLEVEL" ]]; then
 		DISTSP=$SPLEVEL
 	else
 		DISTSP=0
 	fi
-	if [ -n "$OES_DISTRO" ]; then
+	if [[ -n "$OES_DISTRO" ]]; then
 		OESDIST="${OES_DISTRO%% (*}"		
-		if [ -z "$OESDIST" ]; then
+		if [[ -z "$OESDIST" ]]; then
 			OESDIST="NULL"
 		else
 			OESDIST="'$OESDIST'"
 		fi
-		if [ "$OES_SPLEVEL" == "None" ]; then
+		if [[ "$OES_SPLEVEL" == "None" ]]; then
 			OESDISTSP=0
-		elif [ -n "$OES_SPLEVEL" ]; then
+		elif [[ -n "$OES_SPLEVEL" ]]; then
 			OESDISTSP=$OES_SPLEVEL
 		else
 			OESDISTSP=0
@@ -354,21 +354,26 @@ archiveIdentitySQL() {
 		OESDIST="NULL"
 		OESDISTSP="NULL"
 	fi
-	if [ -z "$VIRT_HYPR" ]; then
+	if [[ -z "$VIRT_HYPR" ]]; then
 		HYPER="NULL"
 		HYPERID="NULL"
 	elif [[ "$VIRT_HYPR" =~ "None" ]]; then
 		HYPER="NULL"
 		HYPERID="NULL"
 	else
-		[ -n "$VIRT_HYPR" ] && HYPER="'$VIRT_HYPR'" || HYPER="NULL"
-		[ -n "$VIRT_IDTY" ] && HYPERID="'$VIRT_IDTY'" || HYPERID="NULL"
+		[[ -n "$VIRT_HYPR" ]] && HYPER="'$VIRT_HYPR'" || HYPER="NULL"
+		[[ -n "$VIRT_IDTY" ]] && HYPERID="'$VIRT_IDTY'" || HYPERID="NULL"
+	fi
+	if (( ARCHIVE_MODE )); then
+		USED_ARCH_LOCATION="'$ARCH_LOCATION'"
+	else
+		USED_ARCH_LOCATION='NULL'
 	fi
 	echo >> $IMPORT_FILE
 	echo "UPDATE Archives SET " >> $IMPORT_FILE
 	echo " ArchiveDate='$ARCH_RUN_DATE'," >> $IMPORT_FILE
 	echo " ArchiveTime='$ARCH_RUN_TIME'," >> $IMPORT_FILE
-	echo " FileLocation='$ARCH_LOCATION'," >> $IMPORT_FILE
+	echo " FileLocation=$USED_ARCH_LOCATION," >> $IMPORT_FILE
 	echo " SRNum=$SRNUM," >> $IMPORT_FILE
 	echo " ServerName=$HOST_NAME," >> $IMPORT_FILE
 	echo " VersionKernel=$VERKERN," >> $IMPORT_FILE

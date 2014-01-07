@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.6
+SVER=1.0.7
 
 ##############################################################################
 #  sdagent-patterns - Supportconfig Analysis Agent Pattern Updater
@@ -10,7 +10,7 @@ SVER=1.0.6
 #               repository.
 # Runs on:      Agent Server
 # Runs as user: sca
-# Modified:     2014 Jan 03
+# Modified:     2014 Jan 07
 #
 ##############################################################################
 #
@@ -168,7 +168,7 @@ else
 		chmod 700 ${SPRSRC}
 		if [ -n "$AGENT_ID" ]; then
 			if (( PAT_COUNT > 0 )); then
-				RPM_MODS=$(rpm -qa | grep sca-patterns- | grep -v sca-patterns-scatool | cut -d- -f3 | sort)
+				RPM_MODS=$(rpm -qa | grep sca-patterns- | cut -d- -f3 | sort)
 				LOCAL_COUNT=$(find ${SPRSRC}/local -type f -perm /100 | egrep -v '\.svn|/lib/' | sort | uniq | wc -l)
 				if (( $LOCAL_COUNT > 0 )); then
 					MODULES="$(echo $RPM_MODS) local"

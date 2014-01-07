@@ -14,7 +14,7 @@ Vendor:       SUSE Support
 License:      GPLv2
 Autoreqprov:  on
 Version:      1.2
-Release:      1.140106.PTF.1
+Release:      1.140107.PTF.1
 Source:       %{name}-%{version}.tar.gz
 BuildRoot:    %{_tmppath}/%{name}-%{version}
 Buildarch:    noarch
@@ -69,8 +69,8 @@ install -m 644 man/*.5.gz $RPM_BUILD_ROOT/usr/share/man/man5
 %doc /usr/share/doc/packages/%{sca_common}/*
 
 %changelog
-* Thu Jan 06 2014 jrecord@suse.com
-- ARCH_LOCATION only used if ARCHIVE_MODE set
+* Thu Jan 07 2014 jrecord@suse.com
+- updated pattern filter in sdagent-patterns
 - sdagent-patterns has more explicit zypper startup options
 - separated sca-appliance-common files
 

@@ -368,7 +368,7 @@ archiveIdentitySQL() {
 	echo "UPDATE Archives SET " >> $IMPORT_FILE
 	echo " ArchiveDate='$ARCH_RUN_DATE'," >> $IMPORT_FILE
 	echo " ArchiveTime='$ARCH_RUN_TIME'," >> $IMPORT_FILE
-	echo " FileLocation=$ARCH_LOCATION," >> $IMPORT_FILE
+	echo " FileLocation='$ARCH_LOCATION'," >> $IMPORT_FILE
 	echo " SRNum=$SRNUM," >> $IMPORT_FILE
 	echo " ServerName=$HOST_NAME," >> $IMPORT_FILE
 	echo " VersionKernel=$VERKERN," >> $IMPORT_FILE

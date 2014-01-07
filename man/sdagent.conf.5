@@ -1,4 +1,4 @@
-.TH sdagent.conf 5 "05 Mar 2013" "sdagent.conf" "Supportconfig Diagnostic Manual"
+.TH sdagent.conf 5 "07 Jan 2014" "sdagent.conf" "Supportconfig Diagnostic Manual"
 .SH NAME
 sdagent.conf - Supportconfig Diagnostic Agent configuration file
 .SH DESCRIPTION
@@ -71,6 +71,12 @@ Output source directory. This is the directory component of the OUTSRC.
 Run \fBsdagent-config\fR to configure.
 .RE
 .TP
+ARCH_LOCATION
+The URL where archives are stored and follows the INSRC format.
+.RS
+Default: $INSRC
+.RE
+.TP
 AGENT_ID
 The Agent Server's MySQL ID that identifies it in the database on the Broker Server.
 .RS
@@ -102,12 +108,18 @@ Default: 8
 .RE
 .TP
 MAX_DISK_HEALTH
-The maximum percent of used disk space allowed before declaring the Agent Server unhealthy. The Agent Server will be marked inactive until disk space is freed and the agent reset using \fBdb\fR(1).
+The maximum percent of used disk space allowed before declaring the Agent Server unhealthy. The Agent Server will be marked inactive until disk space is freed and the agent reset using \fBscadb\fR(1).
 .RS
 Default: 98
 .RE
 .TP
-POST_REPORT=0
+MAX_ARCHIVE_SIZE
+The maximum supportconfig archive size that will be considered for analysis. Archives greater than this size will be ignored. The value is file size in bytes.
+.RS
+Default: 3221225472
+.RE
+.TP
+POST_REPORT
 When set to 1, the \fBsdagent-worker\fR will build an HTML report file and post it into the OUTSRC directory.
 .RS
 Default: 0
@@ -128,52 +140,37 @@ Default: 0
 SCDIAG_HOME
 The agent's home working directory.
 .RS
-Default: /var/opt/scdiag
+Default: /var/opt/sca
 .RE
 .TP
-REPO_URL
-The google code SVN repository for the Server Diagnostic Pattern database. These are the perl scripts that parse the supportconfig data to determine if known issues exist.
-.RS
-Default: https://server-diagnostic-patterns.googlecode.com/svn/stable/1.0/
-.RE
-.RS
-\fBWARNING\fR: Do not change this value.
-.RE
-.TP
-FPAT_URL
-The google code SVN repository for the Server Diagnostic Pattern database for viewing pattern files.
-.RS
-Default: https://code.google.com/p/server-diagnostic-patterns/source/browse/stable/1.0
-.RE
-.RS
-\fBWARNING\fR: Do not change this value.
-.RE
-.TP
-SPRSRC="${SCDIAG_HOME}/patterns/"
+SPRSRC
 The supportconfig pattern SVN repository directory. The perl patterns used to analyze the supportconfig text files are located here. 
 .RS
-Default: ${SCDIAG_HOME}/patterns or /var/opt/scdiag/patterns/
+Default: /var/opt/sca/patterns/
 .RE
 .TP
 PATTERNS
 The supportconfig pattern repository manifest. It contains a list of all the usable patterns found in SPRSRC and is updated by \fBsdagent-patterns\fR(1).
 .RS
-Default: ${SCDIAG_HOME}/manifest.patterns or /var/opt/scdiag/manifest.patterns
+Default: /var/opt/sca/manifest.patterns
+.RE
+.TP
+BASHLIB
+The Bash library location for the supportconfig pattern repository. The bash patterns \fBsdagent-worker\fR uses requires bash libraries located in this directory.
+.RS
+Default: /var/opt/sca/patterns/lib/bash
 .RE
 .TP
 PERL5LIB
 The Perl library location for the supportconfig pattern repository. The perl patterns \fBsdagent-worker\fR uses requires perl libraries located in this directory.
 .RS
-Default: ${SPRSRC} or /var/opt/scdiag/patterns/
+Default: /var/opt/sca/patterns/lib/perl
 .RE
 .TP
-META_LINKS
-Defines the required metadata links for pattern processing.
+PYTHONPATH
+The Python library location for the supportconfig pattern repository. The python patterns \fBsdagent-worker\fR uses requires python libraries located in this directory.
 .RS
-Default: TID SECURITY BUG VIDEO SCRIPT MISC COOLSOLUTION PATCH
-.RE
-.RS
-\fBWARNING\fR: Do not change this value.
+Default: /var/opt/sca/patterns/lib/python
 .RE
 .TP
 EMAIL_ADMIN

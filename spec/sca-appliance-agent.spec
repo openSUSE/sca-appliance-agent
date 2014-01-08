@@ -8,13 +8,14 @@
 
 Name:         sca-appliance-agent
 Summary:      Supportconfig Analysis Appliance Agent
+URL:          https://bitbucket.org/g23guy/sca-appliance-agent
 Group:        Documentation/SuSE
 Distribution: SUSE Linux Enterprise
 Vendor:       SUSE Support
-License:      GPLv2
+License:      GPL-2.0
 Autoreqprov:  on
 Version:      1.2
-Release:      1.140107.PTF.1
+Release:      1.140108.PTF.1
 Source:       %{name}-%{version}.tar.gz
 BuildRoot:    %{_tmppath}/%{name}-%{version}
 Buildarch:    noarch

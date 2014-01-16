@@ -137,20 +137,20 @@ Once the \fBsdagent-worker\fR downloads and processes the supportconfig archive,
 Default: 0
 .RE
 .TP
-SCDIAG_HOME
+SCA_WORK
 The agent's home working directory.
 .RS
 Default: /var/opt/sca
 .RE
 .TP
-SPRSRC
+PATTERN_LIBRARY_BASE
 The supportconfig pattern SVN repository directory. The perl patterns used to analyze the supportconfig text files are located here. 
 .RS
 Default: /var/opt/sca/patterns/
 .RE
 .TP
 PATTERNS
-The supportconfig pattern repository manifest. It contains a list of all the usable patterns found in SPRSRC and is updated by \fBsdagent-patterns\fR(1).
+The supportconfig pattern repository manifest. It contains a list of all the usable patterns found in PATTERN_LIBRARY_BASE and is updated by \fBsdagent-patterns\fR(1).
 .RS
 Default: /var/opt/sca/manifest.patterns
 .RE

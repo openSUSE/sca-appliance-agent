@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.0
+SVER=1.0.1
 
 ##############################################################################
 #  sdagent-monitor - Supportconfig Analysis Agent Monitor Tool
@@ -10,7 +10,7 @@ SVER=1.0.0
 #               Worker Threads.
 # Runs on:      Agent Server
 # Runs as user: sca
-# Modified:     2013 Sep 23
+# Modified:     2014 Jan 16
 #
 ##############################################################################
 #
@@ -33,8 +33,8 @@ SVER=1.0.0
 ##############################################################################
 
 CURRENT_SCRIPT=$(basename $0)
-. /etc/opt/sca/sdagent.conf
-[ -s /etc/opt/sca/sdagent-monitor.conf ] && . /etc/opt/sca/sdagent-monitor.conf
+. /etc/sca/sdagent.conf
+[ -s /etc/sca/sdagent-monitor.conf ] && . /etc/sca/sdagent-monitor.conf
 
 msg() {
 	FACLEVEL='info'

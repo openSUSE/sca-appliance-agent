@@ -41,6 +41,7 @@ gzip -9f man/*
 pwd;ls -la
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/%{sca_common}
+install -d $RPM_BUILD_ROOT/var/tmp/%{sca_common}
 install -d $RPM_BUILD_ROOT/usr/sbin
 install -d $RPM_BUILD_ROOT/usr/share/man/man1
 install -d $RPM_BUILD_ROOT/usr/share/man/man5
@@ -55,6 +56,7 @@ install -m 644 man/*.5.gz $RPM_BUILD_ROOT/usr/share/man/man5
 %files
 %defattr(-,root,root)
 %dir /etc/%{sca_common}
+%dir /var/tmp/%{sca_common}
 %dir /usr/share/doc/packages/%{sca_common}
 /usr/sbin/*
 %config /etc/%{sca_common}/*
@@ -64,6 +66,8 @@ install -m 644 man/*.5.gz $RPM_BUILD_ROOT/usr/share/man/man5
 
 %changelog
 * Thu Jan 16 2014 jrecord@suse.com
+- SCADIAG_HOME renamed to SCA_WORK
+- SPRSRC renamed to PATTERN_LIBRARY_BASE
 - relocated files according to FHS
 
 * Thu Jan 07 2014 jrecord@suse.com

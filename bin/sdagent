@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.0
+SVER=1.0.1
 
 ##############################################################################
 #  sdbroker - Supportconfig Analysis Agent Manager
@@ -8,7 +8,7 @@ SVER=1.0.0
 #
 # Description:  Starts sdagent threads for new and retry archives
 # Runs on:      Agent Server
-# Modified:     2013 Sep 23
+# Modified:     2014 Jan 16
 ##############################################################################
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -30,15 +30,15 @@ SVER=1.0.0
 ##############################################################################
 
 CURRENT_SCRIPT=$(basename $0)
-. /etc/opt/sca/sdagent.conf
+. /etc/sca/sdagent.conf
 
 ##############################################################################
 # Global Variables
 ##############################################################################
 
-AGENT_BIN='/opt/sca/bin/sdagent-worker'
+AGENT_BIN='/usr/sbin/sdagent-worker'
 ASSIGNED_ARCHIVES=0
-SUPPRESS_ADDITIONAL_EMAILS="${SCDIAG_HOME}/emails-suppressed.txt"
+SUPPRESS_ADDITIONAL_EMAILS="${SCA_WORK}/emails-suppressed.txt"
 DEACTIVATE=0
 ACTIVATE=0
 PID_CHECK_DELAY=5
@@ -141,14 +141,13 @@ assignNewArchives() {
 			WORKER_ID=$(mysql -BN $DB_CONNECT -e "SELECT WorkerID FROM AgentWorkers WHERE WorkersAgentID='$AGENT_ID' AND ArchiveAssigned IS NULL LIMIT 1")
 			if [ -n "$WORKER_ID" ]; then
 				msg debug 'SQL WORKER_ID' "Assigned Agent Worker ID: $WORKER_ID"
-				WORKER_HOME=$(mysql -BN $DB_CONNECT -e "SELECT HomePath FROM AgentWorkers WHERE WorkerID='$WORKER_ID'")
 				ARCHIVE_FILE=$(mysql -BN $DB_CONNECT -e "SELECT Filename FROM Archives WHERE ArchiveID='$ARCHIVE_ID'")
 				mysql $DB_CONNECT -e "UPDATE Archives SET AssignedWorkerID=$WORKER_ID WHERE ArchiveID='$ARCHIVE_ID'"
 				mysql $DB_CONNECT -e "UPDATE Agents SET ThreadsActive=ThreadsActive+1, AgentEvent=NOW() WHERE AgentID='$AGENT_ID'"
 				mysql $DB_CONNECT -e "UPDATE AgentWorkers SET ArchiveAssigned='$ARCHIVE_ID' WHERE WorkersAgentID='$AGENT_ID' AND WorkerID=$WORKER_ID"
 				((ASSIGNED_ARCHIVES++))
-				msg debug CMD "$AGENT_BIN -l${LOGLEVEL_WORKER} -i \"${AGENT_ID},${WORKER_ID},${ARCHIVE_ID}\" -p ${WORKER_HOME} -a $ARCHIVE_FILE &>/dev/null"
-				nohup $AGENT_BIN -l${LOGLEVEL_WORKER} -i "${AGENT_ID},${WORKER_ID},${ARCHIVE_ID}" -p ${WORKER_HOME} -a ${ARCHIVE_FILE} &>/dev/null &
+				msg debug CMD "$AGENT_BIN -l${LOGLEVEL_WORKER} -i \"${AGENT_ID},${WORKER_ID},${ARCHIVE_ID}\" -p worker${WORKER_ID} -a $ARCHIVE_FILE &>/dev/null"
+				nohup $AGENT_BIN -l${LOGLEVEL_WORKER} -i "${AGENT_ID},${WORKER_ID},${ARCHIVE_ID}" -p worker${WORKER_ID} -a ${ARCHIVE_FILE} &>/dev/null &
 			else
 				mysql $DB_CONNECT -e "UPDATE Archives SET ArchiveState='Retry', AssignedWorkerID=NULL, AssignedAgentID=NULL WHERE ArchiveID='$ARCHIVE_ID'"
 				ACTIVE_WORKERS=$(mysql -NB $DB_CONNECT -e "SELECT COUNT(WorkerID) FROM AgentWorkers WHERE ArchiveAssigned IS NOT NULL")

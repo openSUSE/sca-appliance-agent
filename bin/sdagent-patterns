@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.7
+SVER=1.0.9
 
 ##############################################################################
 #  sdagent-patterns - Supportconfig Analysis Agent Pattern Updater
@@ -10,7 +10,7 @@ SVER=1.0.7
 #               repository.
 # Runs on:      Agent Server
 # Runs as user: sca
-# Modified:     2014 Jan 07
+# Modified:     2014 Jan 16
 #
 ##############################################################################
 #
@@ -33,14 +33,14 @@ SVER=1.0.7
 ##############################################################################
 
 CURRENT_SCRIPT=$(basename $0)
-. /etc/opt/sca/sdagent.conf
-[ -s /etc/opt/sca/sdagent-patterns.conf ] && . /etc/opt/sca/sdagent-patterns.conf
+. /etc/sca/sdagent.conf
+[ -s /etc/sca/sdagent-patterns.conf ] && . /etc/sca/sdagent-patterns.conf
 PAT_COUNT_PRE=0
 PAT_COUNT_POST=0
 PAT_COUNT_CHANGE=0
 PAT_COUNT=0
-SVN_FILE="${SCDIAG_HOME}/svn-change-list.txt"
-PATTERNS="${SCDIAG_HOME}/manifest.patterns"
+SVN_FILE="${SCA_WORK}/svn-change-list.txt"
+PATTERNS="${SCA_WORK}/manifest.patterns"
 
 title() {
 	test $LOGLEVEL -ge $LOGLEVEL_NORMAL && clear
@@ -147,13 +147,13 @@ do
 	esac
 done
 
-PAT_COUNT_PRE=$(find $SPRSRC -type f -perm /100 | egrep -v '\.svn|/lib/' | sort | uniq | wc -l)
+PAT_COUNT_PRE=$(find $PATTERN_LIBRARY_BASE -type f -perm /100 | egrep -v '/patterns/lib/' | sort | uniq | wc -l)
 if (( REFRESH_PATTERNS )); then
 	if repoRefreshed; then
 		updatePatterns
 	fi
 fi
-PAT_COUNT_POST=$(find $SPRSRC -type f -perm /100 | egrep -v '\.svn|/lib/' | sort | uniq | wc -l)
+PAT_COUNT_POST=$(find $PATTERN_LIBRARY_BASE -type f -perm /100 | egrep -v '/patterns/lib/' | sort | uniq | wc -l)
 PAT_COUNT_CHANGE=$(( PAT_COUNT_POST - PAT_COUNT_PRE ))
 PAT_COUNT=$PAT_COUNT_POST
 agentAccess
@@ -163,13 +163,13 @@ if [[ $AGENT_STATE -eq $AGENT_NOACCESS ]]; then
 	[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin "Agent Access" "ERROR Insufficient database access, AGENT_STATE=$AGENT_STATE"
 	exit 5
 else
-	if [ -d ${SPRSRC} ]; then
+	if [ -d ${PATTERN_LIBRARY_BASE} ]; then
 		msg normal "v$SVER" "Pattern Pre-Configuration"
-		chmod 700 ${SPRSRC}
+		chmod 700 ${PATTERN_LIBRARY_BASE}
 		if [ -n "$AGENT_ID" ]; then
 			if (( PAT_COUNT > 0 )); then
 				RPM_MODS=$(rpm -qa | grep sca-patterns- | cut -d- -f3 | sort)
-				LOCAL_COUNT=$(find ${SPRSRC}/local -type f -perm /100 | egrep -v '\.svn|/lib/' | sort | uniq | wc -l)
+				LOCAL_COUNT=$(find ${PATTERN_LIBRARY_BASE}/local -type f -perm /100 | sort | uniq | wc -l)
 				if (( $LOCAL_COUNT > 0 )); then
 					MODULES="$(echo $RPM_MODS) local"
 				else
@@ -202,8 +202,8 @@ else
 			exit 4
 		fi
 	else
-		msg min ERROR "Error: Invalid pattern directory: $SPRSRC"
-		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Invalid pattern directory' "Error: Invalid pattern directory: $SPRSRC"
+		msg min ERROR "Error: Invalid pattern directory: $PATTERN_LIBRARY_BASE"
+		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Invalid pattern directory' "Error: Invalid pattern directory: $PATTERN_LIBRARY_BASE"
 		exit 1
 	fi
 fi

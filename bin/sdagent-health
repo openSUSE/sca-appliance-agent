@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.0
+SVER=1.0.1
 
 ##############################################################################
 #  sdagent-healthcheck - Supportconfig Analysis Agent Health Tool
@@ -9,7 +9,7 @@ SVER=1.0.0
 # Description:  Monitors the current health of Agent Server and it's Agent
 #               Worker Threads.
 # Runs on:      Agent Server
-# Modified:     2013 Sep 23
+# Modified:     2014 Jan 16
 #
 ##############################################################################
 #
@@ -32,8 +32,8 @@ SVER=1.0.0
 ##############################################################################
 
 CURRENT_SCRIPT=$(basename $0)
-. /etc/opt/sca/sdagent.conf
-[ -s /etc/opt/sca/sdagent-health.conf ] && . /etc/opt/sca/sdagent-health.conf
+. /etc/sca/sdagent.conf
+[ -s /etc/sca/sdagent-health.conf ] && . /etc/sca/sdagent-health.conf
 
 msg() {
 	FACLEVEL='info'
@@ -89,7 +89,7 @@ checkWorkers() {
 	if [ $? -eq 0 ]; then
 		if [ -z "$DATABASE_WORKERS" ]; then
 			# remove all the sdagent work directory data from the killed orphaned sdagents
-			rm -rf ${SCDIAG_HOME}/worker*
+			rm -rf ${SCA_WORK}/worker*
 			DIRACT='Cleaned'
 		else
 			# Normal healthy conditions, the database and the running sdagents match
@@ -103,10 +103,10 @@ checkWorkers() {
 }
 
 checkDiskSpace() {
-	DISK_FULL=$(df -h ${SCDIAG_HOME}/ | grep -v Filesystem | awk '{print $5}' | cut -d% -f1)
+	DISK_FULL=$(df -h ${SCA_WORK}/ | grep -v Filesystem | awk '{print $5}' | cut -d% -f1)
 	if [ $DISK_FULL -ge $MAX_DISK_HEALTH ]; then
-		mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentState='Error', AgentMessage='Disk space full for $SCDIAG_HOME' WHERE AgentID='$AGENT_ID'" &>/dev/null
-		msg min AGENT "Deactivated: Disk Full at ${DISK_FULL}% for $SCDIAG_HOME"
+		mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentState='Error', AgentMessage='Disk space full for $SCA_WORK' WHERE AgentID='$AGENT_ID'" &>/dev/null
+		msg min AGENT "Deactivated: Disk Full at ${DISK_FULL}% for $SCA_WORK"
 	fi
 	msg normal AGENT "Disk Space Used ${DISK_FULL}%"
 }
@@ -128,7 +128,7 @@ activateAgent() {
 	PIDS=$(ps axwwo pid,cmd | grep 'bin/sdagent ' | grep "\-i $AGENT_ID," | grep -v BatchMode | awk '{print $1}')
 	kill $PIDS &> /dev/null
 	# clean up work directories
-	rm -rf ${SCDIAG_HOME}/worker*
+	rm -rf ${SCA_WORK}/worker*
 	# reset archives to new or retry
 	RESET_ARCHIVES=$(mysql -NB $DB_CONNECT -e "SELECT ArchiveAssigned FROM AgentWorkers WHERE WorkersAgentID='$AGENT_ID'")
 	if [ -n "$RESET_ARCHIVES" ]; then

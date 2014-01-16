@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.1
+SVER=1.0.2
 
 ##############################################################################
 #  sdagent-config - Supportconfig Analysis Agent Configuration Tool
@@ -9,7 +9,7 @@ SVER=1.0.1
 # Description:  Configures the Agent Server to communicate with the Broker 
 #               Server.
 # Runs on:      Agent Server
-# Modified:     2013 Dec 12
+# Modified:     2014 Jan 16
 #
 ##############################################################################
 #
@@ -33,7 +33,7 @@ SVER=1.0.1
 
 DB_USER='sdagent'
 DB_NAME='ServerDiagnostics'
-AGENT_CONFIG="/etc/opt/sca/sdagent.conf"
+AGENT_CONFIG="/etc/sca/sdagent.conf"
 DEF_CRON="/usr/share/doc/packages/sca/sdagent.cron"
 CURRENT_SCRIPT=$(basename $0)
 

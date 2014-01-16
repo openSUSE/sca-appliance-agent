@@ -2,11 +2,16 @@
 .SH NAME
 sdagent-patterns - Supportconfig Diagnostic Agent Pattern Updater
 .SH SYNOPSIS
-sdagent-patterns
+sdagent-patterns [-u]
 .SH DESCRIPTION
 Checks out and updates the local SVN copy of the Server Diagnostic Patterns from Google code. If you don't have external Internet access, then you will need to exclude \fBsdagent-patterns\fR from your cron entries.
 .SH OPTIONS
-None
+.TP
+\fB\-h\fR
+Show this help screen.
+.TP
+\fB\-u\fR
+Prevents zypper patterns updates. Useful when you want to add a local pattern and update the database, without updating all the patterns. If you don't have external internet access for updating, use this switch to prevent update attempts. Defaults to updating from the external server.
 .SH AUTHOR
 Jason Record <jrecord@suse.com>
 .SH COPYRIGHT

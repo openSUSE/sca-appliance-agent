@@ -1,4 +1,4 @@
-.TH sdagent.conf 5 "07 Jan 2014" "sdagent.conf" "Supportconfig Diagnostic Manual"
+.TH sdagent.conf 5 "16 Jan 2014" "sdagent.conf" "Supportconfig Diagnostic Manual"
 .SH NAME
 sdagent.conf - Supportconfig Diagnostic Agent configuration file
 .SH DESCRIPTION
@@ -140,37 +140,37 @@ Default: 0
 SCA_WORK
 The agent's home working directory.
 .RS
-Default: /var/opt/sca
+Default: /var/tmp/sca
 .RE
 .TP
 PATTERN_LIBRARY_BASE
 The supportconfig pattern SVN repository directory. The perl patterns used to analyze the supportconfig text files are located here. 
 .RS
-Default: /var/opt/sca/patterns/
+Default: /usr/lib/sca/patterns/
 .RE
 .TP
 PATTERNS
 The supportconfig pattern repository manifest. It contains a list of all the usable patterns found in PATTERN_LIBRARY_BASE and is updated by \fBsdagent-patterns\fR(1).
 .RS
-Default: /var/opt/sca/manifest.patterns
+Default: /var/tmp/sca/manifest.patterns
 .RE
 .TP
 BASHLIB
 The Bash library location for the supportconfig pattern repository. The bash patterns \fBsdagent-worker\fR uses requires bash libraries located in this directory.
 .RS
-Default: /var/opt/sca/patterns/lib/bash
+Default: /usr/lib/sca/patterns/lib/bash
 .RE
 .TP
 PERL5LIB
 The Perl library location for the supportconfig pattern repository. The perl patterns \fBsdagent-worker\fR uses requires perl libraries located in this directory.
 .RS
-Default: /var/opt/sca/patterns/lib/perl
+Default: /usr/lib/sca/patterns/lib/perl
 .RE
 .TP
 PYTHONPATH
 The Python library location for the supportconfig pattern repository. The python patterns \fBsdagent-worker\fR uses requires python libraries located in this directory.
 .RS
-Default: /var/opt/sca/patterns/lib/python
+Default: /usr/lib/sca/patterns/lib/python
 .RE
 .TP
 EMAIL_ADMIN

@@ -420,10 +420,10 @@ loadResultEntry() {
 	MLTID=''
 	MLBUG=''
 	URLS=()
-	PATTERN_LOC=${PATTERN//${PATTERN_LIBRARY_BASE}\//}
+	PATTERN_LOC=${PATTERN//${SCA_PATTERN_PATH}\//}
 	IFS='|'
 	msg debug " loadResultEntry USEPAT $PATTERN" "'$USEPAT'"
-	msg debug " loadResultEntry PATTERN_LIBRARY_BASE=${PATTERN_LIBRARY_BASE}, PATTERN_LOC=$PATTERN_LOC"
+	msg debug " loadResultEntry SCA_PATTERN_PATH=${SCA_PATTERN_PATH}, PATTERN_LOC=$PATTERN_LOC"
 	for PATELEMENT in $USEPAT
 	do
 		msg debug '  loadResultEntry PATELEMENT' "'$PATELEMENT'"
@@ -856,12 +856,12 @@ patternPreProcessor() {
 	# Create the pattern manifest file with the list of applicable patterns
 	for PATTERN_GROUP in $PATTERN_GROUPS
 	do
-		if [[ -d ${PATTERN_LIBRARY_BASE}/${PATTERN_GROUP} ]]
+		if [[ -d ${SCA_PATTERN_PATH}/${PATTERN_GROUP} ]]
 		then
-			find ${PATTERN_LIBRARY_BASE}/${PATTERN_GROUP}/ -type f -perm /100 >> $PATTERNS
+			find ${SCA_PATTERN_PATH}/${PATTERN_GROUP}/ -type f -perm /100 >> $PATTERNS
 			EFFECTIVE_GROUPS="${EFFECTIVE_GROUPS} ${PATTERN_GROUP}"
 		else
-			msg verbose ERROR "patternPreProcessor Directory not found - ${PATTERN_LIBRARY_BASE}/${PATTERN_GROUP}"
+			msg verbose ERROR "patternPreProcessor Directory not found - ${SCA_PATTERN_PATH}/${PATTERN_GROUP}"
 		fi
 	done
 	PATCOUNT=$(cat $PATTERNS | wc -l)

@@ -44,7 +44,7 @@ PATTERNS="${SCA_WORK}/manifest.patterns"
 
 title() {
 	test $LOGLEVEL -ge $LOGLEVEL_NORMAL && clear
-	msg normal "SCDIAG_PATTERNS" "$CURRENT_SCRIPT v$SVER"
+	msg normal "SCA_PATTERNS" "$CURRENT_SCRIPT v$SVER"
 }
 
 showHelp() {
@@ -147,13 +147,13 @@ do
 	esac
 done
 
-PAT_COUNT_PRE=$(find $PATTERN_LIBRARY_BASE -type f -perm /100 | egrep -v '/patterns/lib/' | sort | uniq | wc -l)
+PAT_COUNT_PRE=$(find $SCA_PATTERN_PATH -type f -perm /100 | sort | uniq | wc -l)
 if (( REFRESH_PATTERNS )); then
 	if repoRefreshed; then
 		updatePatterns
 	fi
 fi
-PAT_COUNT_POST=$(find $PATTERN_LIBRARY_BASE -type f -perm /100 | egrep -v '/patterns/lib/' | sort | uniq | wc -l)
+PAT_COUNT_POST=$(find $SCA_PATTERN_PATH -type f -perm /100 | sort | uniq | wc -l)
 PAT_COUNT_CHANGE=$(( PAT_COUNT_POST - PAT_COUNT_PRE ))
 PAT_COUNT=$PAT_COUNT_POST
 agentAccess
@@ -163,13 +163,13 @@ if [[ $AGENT_STATE -eq $AGENT_NOACCESS ]]; then
 	[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin "Agent Access" "ERROR Insufficient database access, AGENT_STATE=$AGENT_STATE"
 	exit 5
 else
-	if [ -d ${PATTERN_LIBRARY_BASE} ]; then
+	if [ -d ${SCA_PATTERN_PATH} ]; then
 		msg normal "v$SVER" "Pattern Pre-Configuration"
-		chmod 700 ${PATTERN_LIBRARY_BASE}
+		chmod 700 ${SCA_PATTERN_PATH}
 		if [ -n "$AGENT_ID" ]; then
 			if (( PAT_COUNT > 0 )); then
 				RPM_MODS=$(rpm -qa | grep sca-patterns- | cut -d- -f3 | sort)
-				LOCAL_COUNT=$(find ${PATTERN_LIBRARY_BASE}/local -type f -perm /100 | sort | uniq | wc -l)
+				LOCAL_COUNT=$(find ${SCA_PATTERN_PATH}/local -type f -perm /100 | sort | uniq | wc -l)
 				if (( $LOCAL_COUNT > 0 )); then
 					MODULES="$(echo $RPM_MODS) local"
 				else
@@ -202,8 +202,8 @@ else
 			exit 4
 		fi
 	else
-		msg min ERROR "Error: Invalid pattern directory: $PATTERN_LIBRARY_BASE"
-		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Invalid pattern directory' "Error: Invalid pattern directory: $PATTERN_LIBRARY_BASE"
+		msg min ERROR "Error: Invalid pattern directory: $SCA_PATTERN_PATH"
+		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Invalid pattern directory' "Error: Invalid pattern directory: $SCA_PATTERN_PATH"
 		exit 1
 	fi
 fi

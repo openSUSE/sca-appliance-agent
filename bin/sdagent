@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.1
+SVER=1.0.2
 
 ##############################################################################
 #  sdbroker - Supportconfig Analysis Agent Manager
@@ -8,7 +8,7 @@ SVER=1.0.1
 #
 # Description:  Starts sdagent threads for new and retry archives
 # Runs on:      Agent Server
-# Modified:     2014 Jan 16
+# Modified:     2014 Jan 17
 ##############################################################################
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ PID_CHECK_DELAY=5
 
 title() {
 	test $LOGLEVEL -ge $LOGLEVEL_NORMAL && clear
-	msg normal "SCDIAG_AGENT_SERVER" "$CURRENT_SCRIPT v$SVER"
+	msg normal "SCA_AGENT_SERVER" "$CURRENT_SCRIPT v$SVER"
 }
 
 showHelp() {

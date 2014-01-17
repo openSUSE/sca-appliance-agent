@@ -67,7 +67,7 @@ install -m 644 man/*.5.gz $RPM_BUILD_ROOT/usr/share/man/man5
 %changelog
 * Thu Jan 16 2014 jrecord@suse.com
 - SCADIAG_HOME renamed to SCA_WORK
-- SPRSRC renamed to PATTERN_LIBRARY_BASE
+- SPRSRC renamed to SCA_PATTERN_PATH
 - relocated files according to FHS
 
 * Thu Jan 07 2014 jrecord@suse.com

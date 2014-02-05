@@ -1,0 +1,34 @@
+-------------------------------------------------------------------
+Fri Jan 31 00:22:49 UTC 2014 - jrecord@suse.com
+
+- Added changes file
+
+-------------------------------------------------------------------
+Thu Jan 16 15:32:28 MST 2014 jrecord@suse.com
+
+- SCADIAG_HOME renamed to SCA_WORK
+- SPRSRC renamed to SCA_PATTERN_PATH
+- Relocated files according to FHS
+
+-------------------------------------------------------------------
+Thu Jan 07 15:32:28 MST 2014 jrecord@suse.com
+
+- Updated pattern filter in sdagent-patterns
+- sdagent-patterns has more explicit zypper startup options
+- Separated sca-appliance-common files
+
+-------------------------------------------------------------------
+Tue Dec 24 15:32:28 MST 2013 jrecord@suse.com
+
+- Added ARCH_LOCATION to sdagent.conf
+- sdagent-worker inserts ARCH_LOCATION into SQL import file
+
+-------------------------------------------------------------------
+Thu Dec 20 15:32:28 MST 2013 jrecord@suse.com
+
+- Separated as individual RPM package
+- Sends email for pattern updates when $EMAIL_LEVEL -gt $EMAIL_MIN
+- Correctly checks for SUSE Linux Enterpise archives only
+- sdagent-patterns now updates from the OBS pattern repo
+  * using -u prevents updates
+

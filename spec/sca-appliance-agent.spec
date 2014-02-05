@@ -1,4 +1,5 @@
-# Copyright (C) 2013,2014 SUSE LLC
+# Copyright (C) 2014 SUSE LLC
+#
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
@@ -13,7 +14,7 @@ Group:        Documentation/SuSE
 License:      GPL-2.0
 Autoreqprov:  on
 Version:      1.3
-Release:      2
+Release:      3
 Source:       %{name}-%{version}.tar.gz
 BuildRoot:    %{_tmppath}/%{name}-%{version}
 Buildarch:    noarch
@@ -63,25 +64,4 @@ install -m 644 man/*.5.gz $RPM_BUILD_ROOT/usr/share/man/man5
 %doc /usr/share/doc/packages/%{sca_common}/*
 
 %changelog
-* Thu Jan 16 2014 jrecord@suse.com
-- SCADIAG_HOME renamed to SCA_WORK
-- SPRSRC renamed to SCA_PATTERN_PATH
-- relocated files according to FHS
-
-* Thu Jan 07 2014 jrecord@suse.com
-- updated pattern filter in sdagent-patterns
-- sdagent-patterns has more explicit zypper startup options
-- separated sca-appliance-common files
-
-* Tue Dec 24 2013 jrecord@suse.com
-- annotated sdagent.conf
-- added ARCH_LOCATION to sdagent.conf
-- sdagent-worker inserts ARCH_LOCATION into SQL import file
-
-* Thu Dec 20 2013 jrecord@suse.com
-- separated as individual RPM package
-- sends email for pattern updates when $EMAIL_LEVEL -gt $EMAIL_MIN
-- correctly checks for SUSE Linux Enterpise archives only
-- sdagent-patterns now updates from the OBS pattern repo
-  * using -u prevents updates
 

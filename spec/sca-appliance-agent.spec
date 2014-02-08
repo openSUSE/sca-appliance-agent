@@ -1,3 +1,5 @@
+# spec file for package sca-appliance-agent
+#
 # Copyright (C) 2014 SUSE LLC
 #
 # This file and all modifications and additions to the pristine
@@ -14,7 +16,7 @@ Group:        Documentation/SuSE
 License:      GPL-2.0
 Autoreqprov:  on
 Version:      1.3
-Release:      3
+Release:      4
 Source:       %{name}-%{version}.tar.gz
 BuildRoot:    %{_tmppath}/%{name}-%{version}
 Buildarch:    noarch
@@ -34,7 +36,8 @@ Authors:
 %setup -q
 
 %build
-gzip -9f man/*
+gzip -9f man/*1
+gzip -9f man/*5
 
 %install
 pwd;ls -la
@@ -45,6 +48,7 @@ install -d $RPM_BUILD_ROOT/usr/sbin
 install -d $RPM_BUILD_ROOT/usr/share/man/man1
 install -d $RPM_BUILD_ROOT/usr/share/man/man5
 install -d $RPM_BUILD_ROOT/usr/share/doc/packages/%{sca_common}
+install -m 444 man/COPYING.GPLv2 $RPM_BUILD_ROOT/usr/share/doc/packages/%{sca_common}
 install -m 644 config/*.conf $RPM_BUILD_ROOT/etc/%{sca_common}
 install -m 644 config/* $RPM_BUILD_ROOT/usr/share/doc/packages/%{sca_common}
 install -m 544 bin/* $RPM_BUILD_ROOT/usr/sbin

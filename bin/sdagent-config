@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.2
+SVER=1.0.3
 
 ##############################################################################
 #  sdagent-config - Supportconfig Analysis Agent Configuration Tool
@@ -9,7 +9,7 @@ SVER=1.0.2
 # Description:  Configures the Agent Server to communicate with the Broker 
 #               Server.
 # Runs on:      Agent Server
-# Modified:     2014 Jan 16
+# Modified:     2014 Mar 06
 #
 ##############################################################################
 #
@@ -131,7 +131,7 @@ main() {
 				if (( OPT_POST_REPORT )); then
 					sed -i -e "s!^POST_REPORT=.*!POST_REPORT=1!;s!STATUS_NOTIFY_LEVEL=.*!STATUS_NOTIFY_LEVEL=\$STATUS_SUCCESS!" $AGENT_CONFIG
 				fi
-				/opt/sca/bin/sdagent-patterns -o &>/dev/null
+				sdagent-patterns -u &>/dev/null
 			else
 				echo "ERROR: File not found: $AGENT_CONFIG"
 				echo

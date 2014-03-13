@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 13 16:42:42 UTC 2014 - jrecord@suse.com
+
+- Change to System/Monitoring spec Group
+
+-------------------------------------------------------------------
 Thu Mar  6 18:43:56 UTC 2014 - jrecord@suse.com
 
 - Fixed sdagent-patterns update within sdagent-config

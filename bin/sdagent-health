@@ -23,8 +23,7 @@ SVER=1.0.1
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#  along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 #  Authors/Contributors:
 #     Jason Record (jrecord@suse.com)
@@ -33,7 +32,7 @@ SVER=1.0.1
 
 CURRENT_SCRIPT=$(basename $0)
 . /etc/sca/sdagent.conf
-[ -s /etc/sca/sdagent-health.conf ] && . /etc/sca/sdagent-health.conf
+[[ -s /etc/sca/sdagent-health.conf ]] && . /etc/sca/sdagent-health.conf
 
 msg() {
 	FACLEVEL='info'

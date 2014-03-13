@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.2
+SVER=1.0.3
 
 ##############################################################################
 #  sdbroker - Supportconfig Analysis Agent Manager
@@ -8,7 +8,7 @@ SVER=1.0.2
 #
 # Description:  Starts sdagent threads for new and retry archives
 # Runs on:      Agent Server
-# Modified:     2014 Jan 17
+# Modified:     2014 Mar 13
 ##############################################################################
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -252,6 +252,7 @@ activateAgent() {
 ##############################################################################
 
 title
+[[ -d $SCA_WORK ]] || mkdir -p $SCA_WORK
 [ $AGENT_PRIORITY_GROUP -gt 0 ] && sleep $AGENT_PRIORITY_GROUP
 while getopts ':hl:w:ad' TMPOPT
 do

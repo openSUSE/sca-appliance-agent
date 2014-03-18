@@ -1,8 +1,10 @@
-.TH sdagent-patterns.conf 5 "01 Mar 2013" "sdagent-patterns.conf" "Supportconfig Diagnostic Manual"
+.TH sdagent-monitor.conf 5 "18 Mar 2014" "sdagent-monitor.conf" "Supportconfig Analysis Manual"
 .SH NAME
-sdagent-patterns.conf - Supportconfig Diagnostic Agent Pattern Updater specific configuration file
+sdagent-monitor.conf - Supportconfig Diagnostic Agent Monitor specific configuration file
 .SH DESCRIPTION
+The \fBsdagent-monitor\fR script uses \fBsdagent.conf\fR for default global variable values. If \fBsdagent-monitor.conf\fR is present, it will override any global variables that were set in \fBsdagent.conf\fR.
 .SH GLOBAL VARIABLES
+Same as \fBsdagent.conf\fR(5).
 .SH AUTHOR
 Jason Record <jrecord@suse.com>
 .SH COPYRIGHT
@@ -19,5 +21,5 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 .SH SEE ALSO
 .BR sdagent.conf (5)
-.BR sdagent-patterns (1)
+.BR sdagent-patterns (8)
 

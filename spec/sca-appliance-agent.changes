@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
-Tue Mar 18 21:13:51 UTC 2014 - jrecord@suse.com
+Tue Mar 18 22:04:34 UTC 2014 - jrecord@suse.com
 
+- Updated man page references to sections
 - Added sdagent-health man page
 - Moved section 1 man pages to section 8
 

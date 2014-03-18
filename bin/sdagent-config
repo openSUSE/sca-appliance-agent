@@ -3,13 +3,13 @@
 SVER=1.0.3
 
 ##############################################################################
-#  sdagent-config - Supportconfig Analysis Agent Configuration Tool
-#  Copyright (C) 2013 SUSE LLC
+#  sdagent-config - SCA Agent Configuration Tool
+#  Copyright (C) 2014 SUSE LLC
 #
 # Description:  Configures the Agent Server to communicate with the Broker 
 #               Server.
 # Runs on:      Agent Server
-# Modified:     2014 Mar 06
+# Modified:     2014 Mar 18
 #
 ##############################################################################
 #

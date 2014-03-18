@@ -3,14 +3,13 @@
 SVER=1.0.5
 
 ##############################################################################
-#  sdagent - Supportconfig Analysis Agent Worker Thread
-#  Copyright (C) 2013 SUSE LLC
+#  sdagent - SCA Agent Worker Thread
+#  Copyright (C) 2014 SUSE LLC
 #
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Runs as user: sca
-# Modified:     2014 Jan 16
+# Modified:     2014 Mar 18
 #
 ##############################################################################
 #

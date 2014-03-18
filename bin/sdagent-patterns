@@ -3,14 +3,13 @@
 SVER=1.0.9
 
 ##############################################################################
-#  sdagent-patterns - Supportconfig Analysis Agent Pattern Updater
-#  Copyright (C) 2013 SUSE LLC
+#  sdagent-patterns - SCA Agent Pattern Updater
+#  Copyright (C) 2014 SUSE LLC
 #
 # Description:  Maintains a current list of patterns from the public pattern
 #               repository.
 # Runs on:      Agent Server
-# Runs as user: sca
-# Modified:     2014 Jan 16
+# Modified:     2014 Mar 18
 #
 ##############################################################################
 #

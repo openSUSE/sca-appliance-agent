@@ -1,16 +1,14 @@
 #!/bin/bash
 
-SVER=1.0.1
+SVER=1.0.2
 
 ##############################################################################
-#  sdagent-monitor - Supportconfig Analysis Agent Monitor Tool
-#  Copyright (C) 2013 SUSE LLC
+#  sdagent-monitor - SCA Agent Monitor Tool
+#  Copyright (C) 2014 SUSE LLC
 #
-# Description:  Monitors the current state of Agent Server and it's Agent
-#               Worker Threads.
+# Description:  Monitors the agent server CPU utilization
 # Runs on:      Agent Server
-# Runs as user: sca
-# Modified:     2014 Jan 16
+# Modified:     2014 Mar 18
 #
 ##############################################################################
 #

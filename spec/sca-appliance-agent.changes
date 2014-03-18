@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 18 21:13:51 UTC 2014 - jrecord@suse.com
+
+- Added sdagent-health man page
+- Moved section 1 man pages to section 8
+
+-------------------------------------------------------------------
 Thu Mar 13 20:13:56 UTC 2014 - jrecord@suse.com
 
 - Fixed FSF address in files

@@ -1,14 +1,14 @@
 #!/bin/bash
 
-SVER=1.0.3
+SVER=1.0.6
 
 ##############################################################################
-#  sdbroker - Supportconfig Analysis Agent Manager
+#  sdbroker - SCA Agent Manager
 #  Copyright (c) 2014 SUSE LLC
 #
-# Description:  Starts sdagent threads for new and retry archives
+# Description:  Starts agent threads for new and retry archives
 # Runs on:      Agent Server
-# Modified:     2014 Mar 13
+# Modified:     2014 Mar 19
 ##############################################################################
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -41,6 +41,8 @@ SUPPRESS_ADDITIONAL_EMAILS="${SCA_WORK}/emails-suppressed.txt"
 DEACTIVATE=0
 ACTIVATE=0
 PID_CHECK_DELAY=5
+: ${ARCHIVE_DIR:="/var/log/archives/saved"}
+export ARCHIVE_DIR
 
 ##############################################################################
 # Local Function Definitions
@@ -52,7 +54,7 @@ title() {
 }
 
 showHelp() {
-	[ -n "$1" ] && { echo "$1"; echo; }
+	[[ -n "$1" ]] && { echo "$1"; echo; }
 	echo "Usage: $CURRENT_SCRIPT [OPTIONS]"
 	echo "Description:"
 	echo "  Assigns new supportconfig archives for analysis."
@@ -77,10 +79,10 @@ msg() {
 	*) SYSTEM_LOGGER=1; CURRENT_LOGLEVEL=$LOGLEVEL_MIN ;;
 	esac
 	shift
-	if [ $LOGLEVEL -ge $CURRENT_LOGLEVEL ]; then
-		if [ $SYSTEM_LOGGER -gt 0 ]; then
-			[ -n "$2" ] && logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[$$]: [$1] $2" || logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[$$]: $1"
-			if [ $LOGLEVEL -gt $LOGLEVEL_SILENT ]; then
+	if [[ $LOGLEVEL -ge $CURRENT_LOGLEVEL ]]; then
+		if [[ $SYSTEM_LOGGER -gt 0 ]]; then
+			[[ -n "$2" ]] && logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[$$]: [$1] $2" || logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[$$]: $1"
+			if [[ $LOGLEVEL -gt $LOGLEVEL_SILENT ]]; then
 				printf "%-15s %s\n" "$1" "$2"
 			fi
 		else
@@ -111,7 +113,7 @@ agentAccess() {
 	# returns 0 NO_ACCESS, 1 INACTIVE, 2 ACTIVE
 	CHECK_AGENT_STATE=$(mysql -NB $DB_CONNECT -e "SELECT AgentState FROM Agents WHERE AgentID=$AGENT_ID")
 	RCODE=$?
-	if [ $RCODE -gt 0 ]; then
+	if [[ $RCODE -gt 0 ]]; then
 		msg normal DB "ERROR Cannot access administrative database $DB_NAME on localhost"
 		RCODE=$AGENT_NOACCESS
 	else
@@ -131,14 +133,14 @@ assignNewArchives() {
 	mysql $DB_CONNECT -e "LOCK TABLES Archives WRITE" #Establish MUTEX
 	ARCHIDS=$(mysql -BN $DB_CONNECT -e "SELECT ArchiveID FROM Archives WHERE ArchiveState='New' ORDER BY ArchiveEvent DESC LIMIT $LIMIT")
 	msg debug ARCHIDS "$ARCHIDS"
-	if [ -n "$ARCHIDS" ]; then
+	if [[ -n "$ARCHIDS" ]]; then
 		mysql $DB_CONNECT -e "UPDATE Archives SET ArchiveState='Assigned', ArchiveEvent=NOW(), AssignedAgentID=$AGENT_ID WHERE ArchiveID IN (${ARCHIDS//[[:space:]]/,})"
 		mysql $DB_CONNECT -e "UNLOCK TABLES"
 		for ARCHIVE_ID in $ARCHIDS
 		do
 			msg debug 'SQL AGENT_ID' "Agent ID '$AGENT_ID' assigned to Archive ID '$ARCHIVE_ID'"
 			WORKER_ID=$(mysql -BN $DB_CONNECT -e "SELECT WorkerID FROM AgentWorkers WHERE WorkersAgentID='$AGENT_ID' AND ArchiveAssigned IS NULL LIMIT 1")
-			if [ -n "$WORKER_ID" ]; then
+			if [[ -n "$WORKER_ID" ]]; then
 				msg debug 'SQL WORKER_ID' "Assigned Agent Worker ID: $WORKER_ID"
 				ARCHIVE_FILE=$(mysql -BN $DB_CONNECT -e "SELECT Filename FROM Archives WHERE ArchiveID='$ARCHIVE_ID'")
 				mysql $DB_CONNECT -e "UPDATE Archives SET AssignedWorkerID=$WORKER_ID WHERE ArchiveID='$ARCHIVE_ID'"
@@ -147,12 +149,14 @@ assignNewArchives() {
 				((ASSIGNED_ARCHIVES++))
 				msg debug CMD "$AGENT_BIN -l${LOGLEVEL_WORKER} -i \"${AGENT_ID},${WORKER_ID},${ARCHIVE_ID}\" -p worker${WORKER_ID} -a $ARCHIVE_FILE &>/dev/null"
 				nohup $AGENT_BIN -l${LOGLEVEL_WORKER} -i "${AGENT_ID},${WORKER_ID},${ARCHIVE_ID}" -p worker${WORKER_ID} -a ${ARCHIVE_FILE} &>/dev/null &
+				ERR=$?
+				(( ERR )) && msg min CMD "$AGENT_BIN [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]: execution failure on ${ARCHIVE_FILE}, exit status: $ERR"
 			else
 				mysql $DB_CONNECT -e "UPDATE Archives SET ArchiveState='Retry', AssignedWorkerID=NULL, AssignedAgentID=NULL WHERE ArchiveID='$ARCHIVE_ID'"
 				ACTIVE_WORKERS=$(mysql -NB $DB_CONNECT -e "SELECT COUNT(WorkerID) FROM AgentWorkers WHERE ArchiveAssigned IS NOT NULL")
 				msg verbose AGENTS "Total active agent workers: $ACTIVE_WORKERS"
 				msg verbose AGENTS "Warning: No available agent threads for new archives"
-				[ $EMAIL_LEVEL -ge $EMAIL_NORMAL ] && notifyAdmin "NEW: All Agents Busy" "Warning: All agents are busy, total active agent workers: $ACTIVE_WORKERS"
+				[[ $EMAIL_LEVEL -ge $EMAIL_NORMAL ]] && notifyAdmin "NEW: All Agents Busy" "Warning: All agents are busy, total active agent workers: $ACTIVE_WORKERS"
 				break
 			fi
 		done
@@ -169,11 +173,11 @@ agentBusy() {
 	RCODE=0
 	LIMIT=$(mysql -BN $DB_CONNECT -e "SELECT COUNT(WorkerID) FROM AgentWorkers WHERE ArchiveAssigned IS NULL AND WorkersAgentID=$AGENT_ID")
 	export LIMIT
-	if [ $LIMIT -gt 0 ]; then
+	if [[ $LIMIT -gt 0 ]]; then
 		CPU_MAX=$(mysql -BN $DB_CONNECT -e "SELECT CPUMax FROM Agents WHERE AgentID='$AGENT_ID'")
 		CPU_IDLE=$(vmstat 1 2 | tail -1 | awk '{print $15}')
 		CPU_UTIL=$((100-CPU_IDLE))
-		if [ $CPU_UTIL -ge $CPU_MAX ]; then
+		if [[ $CPU_UTIL -ge $CPU_MAX ]]; then
 			msg normal AGENT "CPU Utilization of ${CPU_UTIL}% exceeds ${CPU_MAX}% threshold"
 			mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentMessage='Busy: Max CPU', CPUCurrent=$CPU_UTIL WHERE AgentID=$AGENT_ID"
 			SQLERR=$?
@@ -182,9 +186,9 @@ agentBusy() {
 			mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentMessage='Ready', CPUCurrent=$CPU_UTIL WHERE AgentID=$AGENT_ID"
 			SQLERR=$?
 		fi
-		if [ $SQLERR -gt 0 ]; then
+		if [[ $SQLERR -gt 0 ]]; then
 			msg normal SQL "ERROR: Failed to update AgentID $AGENT_ID on $HOSTNAME"
-			[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin "Agent $AGENT_ID Update Failed" "ERROR: Failed to update AgentID $AGENT_ID on $HOSTNAME"
+			[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && notifyAdmin "Agent $AGENT_ID Update Failed" "ERROR: Failed to update AgentID $AGENT_ID on $HOSTNAME"
 			exit 3
 		else
 			msg normal CPU "$HOSTNAME CPU Utilization: ${CPU_UTIL}%"
@@ -219,7 +223,7 @@ deactivateAgent() {
 		done
 		msg verbose DEACTIVATE "Deleting all agent $AGENT_ID worker directories"
 		WORKER_DIRS=$(mysql -NB $DB_CONNECT -e "SELECT HomePath FROM AgentWorkers WHERE WorkersAgentID='$AGENT_ID'")
-		[ -n "$WORKER_DIRS" ] && rm -rf $WORKER_DIRS &>/dev/null
+		[[ -n "$WORKER_DIRS" ]] && rm -rf $WORKER_DIRS &>/dev/null
 		msg verbose DEACTIVATE "Releasing all archives assigned to agent $AGENT_ID in the database"
 		mysql $DB_CONNECT -e "UPDATE Archives SET ArchiveState='Retry', ArchiveMessage='Releasing archive, agent deactivated', RetryCount=0, AssignedWorkerID=NULL WHERE AssignedAgentID='$AGENT_ID' AND ArchiveState='Assigned' OR ArchiveState='Downloading' OR ArchiveState='Extracting' OR ArchiveState='Analyzing' OR ArchiveState='Reporting'"
 		msg verbose DEACTIVATE "Resetting agent $AGENT_ID worker threads in the database"
@@ -252,7 +256,10 @@ activateAgent() {
 
 title
 [[ -d $SCA_WORK ]] || mkdir -p $SCA_WORK
-[ $AGENT_PRIORITY_GROUP -gt 0 ] && sleep $AGENT_PRIORITY_GROUP
+if (( ARCHIVE_MODE )); then
+	[[ -d $ARCHIVE_DIR ]] || mkdir -p $ARCHIVE_DIR
+fi
+[[ $AGENT_PRIORITY_GROUP -gt 0 ]] && sleep $AGENT_PRIORITY_GROUP
 while getopts ':hl:w:ad' TMPOPT
 do
 	case $TMPOPT in
@@ -269,7 +276,7 @@ done
 agentAccess
 AGENT_STATE=$?
 if [[ $AGENT_STATE -eq $AGENT_NOACCESS ]]; then
-	[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin "No DB Access" "ERROR Cannot access administrative database $DB_NAME on localhost"
+	[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && notifyAdmin "No DB Access" "ERROR Cannot access administrative database $DB_NAME on localhost"
 	exit 5
 else
 	if [[ $ACTIVATE -gt 0 ]]; then
@@ -288,7 +295,7 @@ else
 			fi
 		else
 			msg normal AGENT "ERROR The agent is not active"
-			[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'AGENT NOT ACTIVE' "ERROR: The agent on $HOSTNAME is not Active, no supportconfig archives will be processed on this agent."
+			[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && notifyAdmin 'AGENT NOT ACTIVE' "ERROR: The agent on $HOSTNAME is not Active, no supportconfig archives will be processed on this agent."
 			date > $SUPPRESS_ADDITIONAL_EMAILS
 			exit 6
 		fi

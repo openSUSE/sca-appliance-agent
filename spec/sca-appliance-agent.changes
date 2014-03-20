@@ -1,8 +1,7 @@
 -------------------------------------------------------------------
-Wed Mar 19 14:36:18 UTC 2014 - jrecord@suse.com
+Thu Mar 20 16:17:05 UTC 2014 - jrecord@suse.com
 
-- Export ARCHIVE_DIR in sdagent for all threads
-- ARCHIVE_MODE triggers saving to ARCHIVE_DIR
+- Fixed man page headers
 - Updated man page references to sections
 - Added sdagent-health man page
 - Moved section 1 man pages to section 8

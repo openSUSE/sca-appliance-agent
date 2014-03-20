@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
-Thu Mar 20 17:21:12 UTC 2014 - jrecord@suse.com
+Thu Mar 20 20:38:08 UTC 2014 - jrecord@suse.com
 
+- Default MAX_ARCHIVE_SIZE changed to 2Gb
+- Fixed huge file download issue
 - Archives moved to ARCHIVE_DIR when ARCHIVE_MODE enabled
 - Added sdagent-supportconfig.conf for ARCHIVE_DIR
 - Updated all references from sdagent-worker to sdagent-supportconfig

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.7
+SVER=1.0.8
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -146,6 +146,17 @@ emailAdminAlerts() {
 	fi
 	rm -f $ADMIN_LOG
 	msg debug "< emailAdminAlerts"
+}
+
+getCurlError() {
+	msg debug " >> getCurlError"
+	CURL_ERRORS='/usr/share/doc/packages/sca/curl.codes.txt'
+	ERRSTR=$(grep " ($RCODE) " $CURL_ERRORS 2>/dev/null | cut -d' ' -f1,2)
+	if [ -z "$ERRSTR" ]; then
+		ERRSTR="Unknown Error ($RCODE)"
+	fi
+	msg debug RESULT "Curl Error Transliteration: $ERRSTR"
+	msg debug " << getCurlError"
 }
 
 confirmArchDir() {
@@ -589,13 +600,16 @@ fetchArchive() {
 			RC=1
 		fi
 
-		msg verbose DOWNLOAD "curl -sfo \"$ARCHFILE\" \"$INSRC/$ARCHIVE\""
-		curl -sfo "$ARCHFILE" "$INSRC/$ARCHIVE"
+		msg verbose DOWNLOAD "curl --silent --fail --max-filesize $MAX_ARCHIVE_SIZE --output \"$ARCHFILE\" \"$INSRC/$ARCHIVE\""
+		curl --silent --fail --max-filesize $MAX_ARCHIVE_SIZE --output "$ARCHFILE" "$INSRC/$ARCHIVE"
 		RC=$?
-		if [ $RC -eq 78 ]; then # punt if the file is gone
-			puntArchive $EMAIL_NORMAL "Download failed, curl CURLE_REMOTE_FILE_NOT_FOUND (78)"
-		elif [ $RC -gt 0 ]; then
-			retryArchive "Cannot download archive, curl ERROR=$RC"
+		if (( RC == 78 )); then # punt if the file is gone
+			puntArchive $EMAIL_NORMAL "Download failed, CURLE_REMOTE_FILE_NOT_FOUND (78)"
+		elif (( RC == 63 )); then
+			puntArchive $EMAIL_NORMAL "Download failed, CURLE_FILESIZE_EXCEEDED (63), MAX_ARCHIVE_SIZE=$MAX_ARCHIVE_SIZE"
+		elif (( RC > 0 )); then
+			getCurlError
+			retryArchive "Download failed, curl: $ERRSTR"
 		fi
 		if (( MAX_ARCHIVE_SIZE > 0 )); then
 			ARCHIVE_SIZE=$(stat -c %s "$ARCHFILE")
@@ -1009,8 +1023,8 @@ putReport() {
 				retryArchive "Cannot contact $OUTSRC"
 				RC=1
 			else
-				msg verbose "UPLOAD" "curl -sfT ${REPORT} ${OUTSRC}/$(basename $REPORT)"
-				curl -sfT "${REPORT}" "${OUTSRC}/$(basename $REPORT)"
+				msg verbose "UPLOAD" "curl --silent --fail --upload-file ${REPORT} ${OUTSRC}/$(basename $REPORT)"
+				curl --silent --fail --upload-file "${REPORT}" "${OUTSRC}/$(basename $REPORT)"
 				RC=$?
 				if [ $RC -gt 0 ]; then
 					if [ $PUNTING -eq 0 ]; then

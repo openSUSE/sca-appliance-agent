@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
-Thu Mar 20 16:17:05 UTC 2014 - jrecord@suse.com
+Thu Mar 20 17:08:41 UTC 2014 - jrecord@suse.com
 
+- Updated all references from sdagent-worker to sdagent-supportconfig
+- Renamed sdagent-worker to sdagent-supportconfig
 - Fixed man page headers
 - Updated man page references to sections
 - Added sdagent-health man page

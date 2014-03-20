@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.5
+SVER=1.0.6
 
 ##############################################################################
 #  sdagent-healthcheck - SCA Agent Health Check Tool
@@ -9,7 +9,7 @@ SVER=1.0.5
 # Description:  Monitors the current health of Agent Server and it's Agent
 #               Worker Threads.
 # Runs on:      Agent Server
-# Modified:     2014 Mar 18
+# Modified:     2014 Mar 20
 #
 ##############################################################################
 #
@@ -84,7 +84,7 @@ agentActive() {
 
 checkWorkers() {
 	DATABASE_WORKERS=$(mysql -NB $DB_CONNECT -e "SELECT WorkerID FROM AgentWorkers WHERE ArchiveAssigned IS NOT NULL AND WorkersAgentID='$AGENT_ID'")
-	PIDS=$(ps axwwo cmd | grep 'bin/sdagent-worker ' | grep "\-i $AGENT_ID," | sort | uniq | wc -l)
+	PIDS=$(ps axwwo cmd | grep 'bin/sdagent-supportconfig ' | grep "\-i $AGENT_ID," | sort | uniq | wc -l)
 	if [[ $? -eq 0 ]]; then
 		if [[ -z "$DATABASE_WORKERS" ]]; then
 			# remove all the sdagent work directory data from the killed orphaned sdagents
@@ -124,7 +124,7 @@ updateCPUtil() {
 
 activateAgent() {
 	# kill all current sdagent threads
-	PIDS=$(ps axwwo pid,cmd | grep 'bin/sdagent-worker ' | grep "\-i $AGENT_ID," | awk '{print $1}')
+	PIDS=$(ps axwwo pid,cmd | grep 'bin/sdagent-supportconfig ' | grep "\-i $AGENT_ID," | awk '{print $1}')
 	kill $PIDS &> /dev/null
 	# clean up work directories
 	rm -rf ${SCA_WORK}/worker*

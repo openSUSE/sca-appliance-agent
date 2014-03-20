@@ -1,9 +1,9 @@
 #!/bin/bash
 
-SVER=1.0.5
+SVER=1.0.6
 
 ##############################################################################
-# sdagent-worker - SCA Agent Worker Thread for Supportconfigs
+# sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
 # Copyright (C) 2014 SUSE LLC
 #
 # Description:  A process forked by the sdagent to analyze a supportconfig 
@@ -33,7 +33,7 @@ SVER=1.0.5
 CURRENT_SCRIPT=$(basename $0)
 DEBUGGING_MODE=0
 . /etc/sca/sdagent.conf
-[ -s /etc/sca/sdagent-worker.conf ] && . /etc/sca/sdagent-worker.conf
+[ -s /etc/sca/sdagent-supportconfig.conf ] && . /etc/sca/sdagent-supportconfig.conf
 ADMIN_LOG=$(mktemp ${SCA_WORK}/${CURRENT_SCRIPT}.admin.log.XXXXXXXXXX)
 EVENT_FLAGS=( 0 0 0 0 0 0 0 )
 declare -a RESULT_ELEMENT=(META_CLASS META_CATEGORY META_COMPONENT PATTERN_ID PRIMARY_LINK OVERALL OVERALL_INFO META_LINK_)

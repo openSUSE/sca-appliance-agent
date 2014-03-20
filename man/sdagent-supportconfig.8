@@ -1,8 +1,8 @@
-.TH SDAGENT-WORKER 8 "20 Mar 2014" "sca-appliance-agent" "Supportconfig Analysis Manual"
+.TH SDAGENT-SUPPORTCONFIG 8 "20 Mar 2014" "sca-appliance-agent" "Supportconfig Analysis Manual"
 .SH NAME
-sdagent-worker - SCA Agent Worker for Supportconfig Archives
+sdagent-supportconfig - SCA Agent Worker for Supportconfig Archives
 .SH SYNOPSIS
-sdagent-worker -l LOGLEVEL_WORKER  -i "AGENT_ID,WORKER_ID,ARCHIVE_ID" -p WORKER_HOME -a ARCHIVE_FILE
+sdagent-supportconfig -l LOGLEVEL_WORKER  -i "AGENT_ID,WORKER_ID,ARCHIVE_ID" -p WORKER_HOME -a ARCHIVE_FILE
 .SH DESCRIPTION
 Downloads, extracts and analyzes individual supportconfig archives, then posts the analysis results into the MySQL database and creates an SCA report if requested. The agent worker thread is intended to be launched by \fBsdagent\fR. 
 .SH OPTIONS

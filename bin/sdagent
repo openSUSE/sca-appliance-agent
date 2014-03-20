@@ -35,7 +35,7 @@ CURRENT_SCRIPT=$(basename $0)
 # Global Variables
 ##############################################################################
 
-AGENT_BIN='/usr/sbin/sdagent-worker'
+AGENT_BIN='/usr/sbin/sdagent-supportconfig'
 ASSIGNED_ARCHIVES=0
 SUPPRESS_ADDITIONAL_EMAILS="${SCA_WORK}/emails-suppressed.txt"
 DEACTIVATE=0
@@ -207,13 +207,13 @@ deactivateAgent() {
 		STOP_WORKERS=1
 		while (( STOP_WORKERS )); 
 		do
-			PIDS=$(ps axwwo pid,cmd | grep /bin/sdagent-worker | grep -v grep | cut -d' ' -f1)
+			PIDS=$(ps axwwo pid,cmd | grep $AGENT_BIN | grep -v grep | cut -d' ' -f1)
 			if [[ -n "$PIDS" ]]; then
 				msg min DEACTIVATE "Stopping Active Threads: $PIDS"
 				kill -9 $PIDS
 				sleep $PID_CHECK_DELAY
 			else
-				msg debug DEACTIVATE "All sdagent-worker threads stopped"
+				msg debug DEACTIVATE "All $(basename $AGENT_BIN) threads stopped"
 				STOP_WORKERS=0
 			fi
 		done

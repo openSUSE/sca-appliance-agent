@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.6
+SVER=1.0.7
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -230,13 +230,22 @@ puntArchive() {
 finishWorker() {
 	msg debug '> finishWorker'
 	ARCH_STATE="$1"
-	if [ $ARCHIVE_MODE -eq 0 ]; then
-		msg verbose ARCHIVE "ARCHIVE_MODE is not set, cleaning files"
-		if [ "$ARCH_STATE" != "Retry" ]; then
+	if (( ARCHIVE_MODE )); then
+		if [[ "$ARCH_STATE" != "Retry" ]]; then
 			case $INSRC_TYPE in
 			file) 
 				ARCHFILES="${INSRC_DIR}/${ARCHIVE}"
-				msg verbose ARCHIVE "Removing ${ARCHFILES}*"
+				msg verbose ARCHIVE "ARCHIVE_MODE enabled, archiving ${ARCHFILES}*"
+				mv ${ARCHFILES}* ${ARCHIVE_DIR}/
+				;;
+			esac
+		fi
+	else
+		if [[ "$ARCH_STATE" != "Retry" ]]; then
+			case $INSRC_TYPE in
+			file) 
+				ARCHFILES="${INSRC_DIR}/${ARCHIVE}"
+				msg verbose ARCHIVE "ARCHIVE_MODE disabled, removing ${ARCHFILES}*"
 				rm -f ${ARCHFILES}*
 				;;
 			esac
@@ -1068,6 +1077,10 @@ main() {
 	STAT_RPT_DATE=$(date +"%Y-%m-%d")
 	STAT_RPT_TIME=$(date +"%H:%M:%S")
 	REPORT="${REPORTDIR}/${ARCHDIR}_report.htm"
+	: ${ARCHIVE_DIR:='/var/log/archives/saved'}
+	if (( ARCHIVE_MODE )); then
+		[[ -d $ARCHIVE_DIR ]] || mkdir -p $ARCHIVE_DIR
+	fi
 	declare -a URLS
 	S_TEMP=0
 	S_PART=0

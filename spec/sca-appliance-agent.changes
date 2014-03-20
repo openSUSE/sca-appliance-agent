@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
-Thu Mar 20 17:08:41 UTC 2014 - jrecord@suse.com
+Thu Mar 20 17:21:12 UTC 2014 - jrecord@suse.com
 
+- Archives moved to ARCHIVE_DIR when ARCHIVE_MODE enabled
+- Added sdagent-supportconfig.conf for ARCHIVE_DIR
 - Updated all references from sdagent-worker to sdagent-supportconfig
 - Renamed sdagent-worker to sdagent-supportconfig
 - Fixed man page headers

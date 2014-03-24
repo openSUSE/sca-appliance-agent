@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.9
+SVER=1.0.10
 
 ##############################################################################
 #  sdagent-patterns - SCA Agent Pattern Updater
@@ -9,7 +9,7 @@ SVER=1.0.9
 # Description:  Maintains a current list of patterns from the public pattern
 #               repository.
 # Runs on:      Agent Server
-# Modified:     2014 Mar 18
+# Modified:     2014 Mar 24
 #
 ##############################################################################
 #
@@ -134,19 +134,18 @@ updatePatterns() {
 	return $RC
 }
 
-REFRESH_PATTERNS=1
 while getopts ':hu' TMPOPT
 do
 	case $TMPOPT in
 		\:) title; showHelp "ERROR: Missing Argument -$OPTARG"; exit 1 ;; 
 		\?) title; showHelp "ERROR: Invalid Option -$OPTARG"; exit 2 ;;
 		h) title; showHelp; exit 0 ;;
-		u) REFRESH_PATTERNS=0 ;;
+		u) UPDATE_FROM_PATTERN_REPO=0 ;;
 	esac
 done
 
 PAT_COUNT_PRE=$(find $SCA_PATTERN_PATH -type f -perm /100 | sort | uniq | wc -l)
-if (( REFRESH_PATTERNS )); then
+if (( UPDATE_FROM_PATTERN_REPO )); then
 	if repoRefreshed; then
 		updatePatterns
 	fi

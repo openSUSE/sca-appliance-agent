@@ -1,10 +1,13 @@
-.TH SDAGENT-SUPPORTCONFIG.CONF 5 "20 Mar 2014" "sca-appliance-agent" "Supportconfig Analysis Manual"
+.TH SDAGENT-SUPPORTCONFIG.CONF 5 "24 Mar 2014" "sca-appliance-agent" "Supportconfig Analysis Manual"
 .SH NAME
 sdagent-supportconfig.conf - Supportconfig Diagnostic Agent Worker Thread specific configuration file
 .SH DESCRIPTION
 The \fBsdagent-supportconfig\fR script uses \fBsdagent.conf\fR for default global variable values. If \fBsdagent-supportconfig.conf\fR is present, it will override any global variables that were set in \fBsdagent.conf\fR.
 .SH GLOBAL VARIABLES
-Same as \fBsdagent.conf\fR(5).
+Same as \fBsdagent.conf\fR(5), with the following exceptions.
+.TP
+ARCHIVE_DIR
+The path to the archive directory. When ARCHIVE_MODE is enabled, completed supportconfig archives will be moved to the ARCHIVE_DIR directory.
 .SH AUTHOR
 Jason Record <jrecord@suse.com>
 .SH COPYRIGHT

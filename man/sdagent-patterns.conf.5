@@ -1,10 +1,16 @@
-.TH SDAGENT-PATTERNS.CONF 5 "20 Mar 2014" "sca-appliance-agent" "Supportconfig Analysis Manual"
+.TH SDAGENT-PATTERNS.CONF 5 "24 Mar 2014" "sca-appliance-agent" "Supportconfig Analysis Manual"
 .SH NAME
 sdagent-patterns.conf - Supportconfig Diagnostic Agent Pattern Updater specific configuration file
 .SH DESCRIPTION
 The \fBsdagent-patterns\fR script uses \fBsdagent.conf\fR for default global variable values. If \fBsdagent-patterns.conf\fR is present, it will override any global variables that were set in \fBsdagent.conf\fR.
 .SH GLOBAL VARIABLES
-Same as \fBsdagent.conf\fR(5).
+Same as \fBsdagent.conf\fR(5), with the following exceptions.
+.TP
+UPDATE_FROM_PATTERN_REPO
+Enables updating the sca-patterns-* packages from the default update respository. Valid options are 1 to enable and 0 to disable. 
+.RS
+Default: 1
+.RE
 .SH AUTHOR
 Jason Record <jrecord@suse.com>
 .SH COPYRIGHT

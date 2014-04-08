@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.9
+SVER=1.0.10
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.9
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Mar 27
+# Modified:     2014 Apr 08
 #
 ##############################################################################
 #
@@ -737,15 +737,15 @@ getArchiveInfo() {
 			OES_SPLEVEL=''
 		fi
 		msg debug VAR "OES_DISTRO='$OES_DISTRO', OES_SPLEVEL='$OES_SPLEVEL'"
-		SRNUM=$(echo $ARCHIVE | awk -F_ '{print $2}')
-		if echo $SRNUM | grep SR &>/dev/null; then
-			if (( ${#SRNUM} > 2 )); then
-				SRNUM=$(echo $SRNUM | sed -e 's/SR//')
-			else
-				SRNUM=0
+		SRNUM=0
+		TMPSR=$(echo $ARCHIVE | awk -F_ '{print $2}')
+		if echo $TMPSR | grep '^SR' &>/dev/null; then
+			TMPSR=$(echo $TMPSR | sed -e 's/SR//')
+			if echo $TMPSR | grep '^[0-9]*$' &>/dev/null; then
+				if (( ${#TMPSR} != 11 )); then
+					SRNUM=$TMPSR
+				fi
 			fi
-		else
-			SRNUM=0
 		fi
 		VIRT=$(grep -A2 '^Hardware:' $ENVFILE)
 		VIRT_HYPR=''

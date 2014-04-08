@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr  8 19:36:04 UTC 2014 - jrecord@suse.com
+
+- Fixed SQL import error on invalid SR numbers (bnc#871657)
+
+-------------------------------------------------------------------
 Thu Mar 27 19:05:23 UTC 2014 - jrecord@suse.com
 
 - Removed unused Samba filter

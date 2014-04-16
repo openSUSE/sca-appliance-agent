@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
-Wed Apr 16 14:48:16 UTC 2014 - jrecord@suse.com
+Wed Apr 16 16:29:43 UTC 2014 - jrecord@suse.com
 
+- Changed to lowercase directories
 - Removed SLE/all and OES/all preprocessor option
 
 -------------------------------------------------------------------

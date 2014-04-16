@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.11
+SVER=1.0.12
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -821,38 +821,31 @@ patternPreProcessor() {
 		PATTERN_GROUPS="$PATTERN_GROUPS OES/oes${VER_MAJOR}sp${REL}"
 	fi
 
-	# High Availability Extension (HAE)
-	RELEASEINFO=$(egrep -i "^heartbeat[[:space:]]|^openais[[:space:]]|^pacemaker[[:space:]]" $RPMFILE)
-	if [[ -n "$RELEASEINFO" ]]
-	then
-		PATTERN_GROUPS="$PATTERN_GROUPS HAE"
-	fi
-
 	# eDirectory
 	RELEASEINFO=$(egrep -i "NDSserv[[:space:]]" $RPMFILE)
 	if [[ -n "$RELEASEINFO" ]]
 	then
-		PATTERN_GROUPS="$PATTERN_GROUPS eDirectory"
+		PATTERN_GROUPS="$PATTERN_GROUPS edirectory"
 	fi
 
 	# GroupWise
 	if egrep -i "groupwise" $RPMFILE &>/dev/null
 	then
-		PATTERN_GROUPS="$PATTERN_GROUPS GroupWise"
+		PATTERN_GROUPS="$PATTERN_GROUPS groupwise"
 	fi
 
 	# GroupWise Datasync Mobility
 	RELEASEINFO=$(egrep -i "datasync-common[[:space:]]" $RPMFILE)
 	if [[ -n "$RELEASEINFO" ]]
 	then
-		PATTERN_GROUPS="$PATTERN_GROUPS GroupWise"
+		PATTERN_GROUPS="$PATTERN_GROUPS groupwise"
 	fi
 
 	# Filr
 	RELEASEINFO=$(sed -ne '/\/etc\/Novell-VA-release/,/#==/p' $ENVFILE | egrep -v "^$|^#")
 	if [[ -n "$RELEASEINFO" ]]
 	then
-		PATTERN_GROUPS="$PATTERN_GROUPS Filr"
+		PATTERN_GROUPS="$PATTERN_GROUPS filr"
 	fi
 
 	msg verbose PATTERNS "patternPreProcessor Manifest: $PATTERN_GROUPS"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.10
+SVER=1.0.11
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.10
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Apr 08
+# Modified:     2014 Apr 16
 #
 ##############################################################################
 #
@@ -806,7 +806,6 @@ patternPreProcessor() {
 		VER=$(echo "$RELEASEINFO" | grep VERSION | head -1 | awk '{print $NF}')
 		REL=$(echo "$RELEASEINFO" | grep PATCHLEVEL | head -1 | awk '{print $NF}')
 		[[ -z "$REL" ]] && REL=0
-		PATTERN_GROUPS="$PATTERN_GROUPS SLE/all"
 		PATTERN_GROUPS="$PATTERN_GROUPS SLE/sle${VER}all"
 		PATTERN_GROUPS="$PATTERN_GROUPS SLE/sle${VER}sp${REL}"
 	fi
@@ -818,7 +817,6 @@ patternPreProcessor() {
 		VER=$(echo "$RELEASEINFO" | grep VERSION | head -1 | awk '{print $NF}')
 		VER_MAJOR=${VER/\.*/}
 		REL=$(echo "$RELEASEINFO" | grep PATCHLEVEL | head -1 | awk '{print $NF}')
-		PATTERN_GROUPS="$PATTERN_GROUPS OES/all"
 		PATTERN_GROUPS="$PATTERN_GROUPS OES/oes${VER_MAJOR}all"
 		PATTERN_GROUPS="$PATTERN_GROUPS OES/oes${VER_MAJOR}sp${REL}"
 	fi

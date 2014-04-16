@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 16 14:48:16 UTC 2014 - jrecord@suse.com
+
+- Removed SLE/all and OES/all preprocessor option
+
+-------------------------------------------------------------------
 Tue Apr  8 19:36:04 UTC 2014 - jrecord@suse.com
 
 - Fixed SQL import error on invalid SR numbers (bnc#871657)

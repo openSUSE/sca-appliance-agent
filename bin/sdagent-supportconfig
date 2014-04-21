@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.12
+SVER=1.0.13
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.12
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Apr 16
+# Modified:     2014 Apr 21
 #
 ##############################################################################
 #
@@ -917,7 +917,7 @@ analyzeArchive() {
 		msg debug APPLYING "Pattern $PATTERN"
 		PATHEADER="REPORT_DATE=$STAT_RPT_DATE|REPORT_TIME=$STAT_RPT_TIME|SRNUM=$SRNUM|ARCHIVE=$ARCHIVE"
 		(( DEBUGGING_MODE )) && echo "$PATTERN" >> $ANALYSIS_ERROR_LOG
-		(( DEBUGGING_MODE )) && PATINFO=$($PATTERN -p ${ARCHPATH}/ 2>> $ANALYSIS_ERROR_LOG) || PATINFO=$($PATTERN -p ${ARCHPATH}/ 2>/dev/null) 
+		(( DEBUGGING_MODE )) && PATINFO=$($PATTERN -p ${ARCHPATH}/ 2>> $ANALYSIS_ERROR_LOG) || PATINFO=$($PATTERN -p ${ARCHPATH}/ 2>&1) 
 		BINRC=$?
 		(( DEBUGGING_MODE )) && echo "${PATTERN}__Return=${BINRC}__${PATHEADER}__${PATINFO}" >> $ANALYSIS_LOG
 		if [ $BINRC -gt 0 ]; then
@@ -925,9 +925,14 @@ analyzeArchive() {
 		else
 			# Confirm pattern result output
 			PAT_HEADER_ERROR=0
+			if echo $PATINFO | grep -v '^META' &>/dev/null; then
+				PAT_OUTPUT_ERROR=1
+			else
+				PAT_OUTPUT_ERROR=0
+			fi
 			for (( I=1; I>=${#RESULT_ELEMENT[@]}; I++ ))
 			do
-				TMP=$(echo $PATINFO | cut -d\| -f${I})
+				TMP=$(echo "$PATINFO" | cut -d\| -f${I})
 				if ! echo $TMP | grep "^${RESULT_ELEMENT[$I]}" &>/dev/null
 				then
 					PAT_HEADER_ERROR=$I
@@ -940,6 +945,9 @@ analyzeArchive() {
 			if (( PAT_HEADER_ERROR ))
 			then
 				[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern output error, element $PAT_HEADER_ERROR, $TMP failed to match ${RESULT_ELEMENT[$PAT_HEADER_ERROR]}: $PATTERN"
+			elif (( PAT_OUTPUT_ERROR ))
+			then
+				[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern output error, $(echo $PATINFO | head -1): $PATTERN"
 			else
 				OUTVALUE=$(echo $PATINFO | cut -d\| -f6 | cut -d= -f2)
 				PATOUT="${PATHEADER}|${PATINFO}"

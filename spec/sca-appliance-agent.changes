@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Apr 21 19:21:34 UTC 2014 - jrecord@suse.com
+
+- Fixed pattern evaluation errors (bnc#874027)
+
+-------------------------------------------------------------------
 Wed Apr 16 16:29:43 UTC 2014 - jrecord@suse.com
 
 - Changed to lowercase directories

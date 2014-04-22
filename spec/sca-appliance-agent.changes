@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 22 22:09:57 UTC 2014 - jrecord@suse.com
+
+- Removed clearn screen and -c
+
+-------------------------------------------------------------------
 Mon Apr 21 19:21:34 UTC 2014 - jrecord@suse.com
 
 - Fixed pattern evaluation errors (bnc#874027)

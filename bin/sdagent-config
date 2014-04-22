@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.3
+SVER=1.0.4
 
 ##############################################################################
 #  sdagent-config - SCA Agent Configuration Tool
@@ -9,7 +9,7 @@ SVER=1.0.3
 # Description:  Configures the Agent Server to communicate with the Broker 
 #               Server.
 # Runs on:      Agent Server
-# Modified:     2014 Mar 18
+# Modified:     2014 Apr 22
 #
 ##############################################################################
 #
@@ -48,7 +48,6 @@ title() {
 }
 
 showHelp() {
-	clear
 	title
 	[ -n "$1" ] && { echo "$1"; echo; }
 	echo "Usage: $CURRENT_SCRIPT -h <broker> -p <sdagent_password> -i <input_url> -e <admin_email> [OPTIONS]"
@@ -57,7 +56,6 @@ showHelp() {
 	echo
 	echo 'Options:'
 	echo '  -H Show this screen and exit'
-	echo '  -c Do not clear the screen'
 	echo "  -h <str> Broker hostname, this is where $DB_NAME is located"
 	echo '  -p <str> MySQL sdagent password'
 	echo "  -i <str> Input Source URL"
@@ -171,14 +169,12 @@ OPT_EMAIL_ADMIN=''
 OPT_EMAIL_REPORT=''
 OPT_POST_REPORT=0
 SERVER_NAME=''
-CLEAR=1
-while getopts ':Hch:e:i:l:o:p:ts:' TMPOPT
+while getopts ':Hh:e:i:l:o:p:ts:' TMPOPT
 do
 	case $TMPOPT in
 		\:) showHelp "ERROR: Missing Argument -$OPTARG"; exit 1 ;;
 		\?) showHelp "ERROR: Invalid Option -$OPTARG"; exit 2 ;;
 		H) showHelp; exit 0 ;;
-		c) CLEAR=0 ;;
 		h) OPT_BROKER=$OPTARG ;;
 		i) OPT_INSRC=$OPTARG ;;
 		l) SERVER_NAME=$OPTARG ;;
@@ -196,7 +192,6 @@ done
 [ -z "$OPT_EMAIL_ADMIN" ] && { showHelp "ERROR: Missing Admin email address"; exit 1; }
 [ -z "$OPT_EMAIL_REPORT" ] && OPT_EMAIL_REPORT=$OPT_EMAIL_ADMIN
 
-[ $CLEAR -gt 0 ] && clear
 title
 main
 

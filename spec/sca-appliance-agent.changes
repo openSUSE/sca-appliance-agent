@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
-Tue Apr 22 22:09:57 UTC 2014 - jrecord@suse.com
+Fri Apr 25 17:07:26 UTC 2014 - jrecord@suse.com
 
+- Cleaned up pattern errors for defect reports
 - Removed clearn screen and -c
 
 -------------------------------------------------------------------

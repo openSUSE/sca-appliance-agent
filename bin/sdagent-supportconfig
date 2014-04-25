@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.13
+SVER=1.0.15
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.13
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Apr 21
+# Modified:     2014 Apr 25
 #
 ##############################################################################
 #
@@ -90,7 +90,9 @@ logAdminEvent() {
 	sql) EVENT_FLAGS[6]=1 ;;
 	esac
 	shift
-	[ -z "$ARCHIVE" ] && ARCH_DATA='' || ARCH_DATA=", Archive=$ARCHIVE"
+	[ -z "$ARCHIVE" ] && ARCH_DATA='' || ARCH_DATA="Archive=${ARCH_LOCATION}/${ARCHIVE}
+
+"
 	case $1 in
 	warning) shift; echo "[$(date)] WARNING: $*${ARCH_DATA}" >> $ADMIN_LOG; msg normal ' WARNING' "$*" ;;
 	error) shift;   echo "[$(date)] ERROR:   $*${ARCH_DATA}" >> $ADMIN_LOG; msg normal ' ERROR' "$*" ;;
@@ -921,7 +923,10 @@ analyzeArchive() {
 		BINRC=$?
 		(( DEBUGGING_MODE )) && echo "${PATTERN}__Return=${BINRC}__${PATHEADER}__${PATINFO}" >> $ANALYSIS_LOG
 		if [ $BINRC -gt 0 ]; then
-			[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern: $PATTERN"
+			[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern execution error:
+$(echo $PATINFO | sed -e 's/META_CLASS=/\nMETA_CLASS=/')
+Pattern=${PATTERN}
+"
 		else
 			# Confirm pattern result output
 			PAT_HEADER_ERROR=0
@@ -944,10 +949,16 @@ analyzeArchive() {
 			# Output pattern results
 			if (( PAT_HEADER_ERROR ))
 			then
-				[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern output error, element $PAT_HEADER_ERROR, $TMP failed to match ${RESULT_ELEMENT[$PAT_HEADER_ERROR]}: $PATTERN"
+				[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern header error:
+Element $PAT_HEADER_ERROR, $TMP failed to match ${RESULT_ELEMENT[$PAT_HEADER_ERROR]}
+Pattern=${PATTERN}
+"
 			elif (( PAT_OUTPUT_ERROR ))
 			then
-				[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern output error, $(echo $PATINFO | head -1): $PATTERN"
+				[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern output error:
+$(echo $PATINFO | sed -e 's/META_CLASS=/\nMETA_CLASS=/')
+Pattern=${PATTERN}
+"
 			else
 				OUTVALUE=$(echo $PATINFO | cut -d\| -f6 | cut -d= -f2)
 				PATOUT="${PATHEADER}|${PATINFO}"

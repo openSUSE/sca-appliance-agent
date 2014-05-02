@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri May  2 16:28:51 UTC 2014 - jrecord@suse.com
+
+- Fixed sdagent-supportconfig patternPreProcessor() detection (bnc#876180)
+
+-------------------------------------------------------------------
 Fri Apr 25 17:07:26 UTC 2014 - jrecord@suse.com
 
 - Cleaned up pattern errors for defect reports

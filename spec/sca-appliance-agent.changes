@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May  5 15:45:39 UTC 2014 - jrecord@suse.com
+
+- Fetch SR number from basic-environment.txt, not filename.
+
+-------------------------------------------------------------------
 Fri May  2 16:28:51 UTC 2014 - jrecord@suse.com
 
 - Fixed sdagent-supportconfig patternPreProcessor() detection (bnc#876180)

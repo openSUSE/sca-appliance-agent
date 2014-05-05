@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.16
+SVER=1.0.17
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.16
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 May 02
+# Modified:     2014 May 05
 #
 ##############################################################################
 #
@@ -117,7 +117,7 @@ emailSCAReport() {
 		msg verbose NOTIFY "Sending $NOTICE_LEVEL Status to Email(s): $EMAIL_REPORT"
 		for SENDTO in $EMAIL_REPORT
 		do
-			if [ $SRNUM -gt 0 ]; then
+			if (( SRNUM )); then
 				printf "Analysis Date = $REPORT_DATE\nArchive = $INSRC/$ARCHIVE\nFull Report = ${OURSRC}/$(basename ${REPORT})\nProcess ID = [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]\n\nServer = $SERVER_NAME\nNotice Level >= $NOTICE_LEVEL\n\nConditions Checked = $S_CHECKED\nCritical=$S_CRIT, Warning=$S_WARN, Recommended=$S_RECC, Success=$S_SUCC\n" | mailx -n -a $REPORT -s "Server Analysis: SR# $SRNUM, ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}, $SERVER_NAME" $SENDTO
 			else
 				printf "Analysis Date = $REPORT_DATE\nArchive = $INSRC/$ARCHIVE\nFull Report = ${OURSRC}/$(basename ${REPORT})\nProcess ID = [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]\n\nServer = $SERVER_NAME\nNotice Level >= $NOTICE_LEVEL\n\nConditions Checked = $S_CHECKED\nCritical=$S_CRIT, Warning=$S_WARN, Recommended=$S_RECC, Success=$S_SUCC\n" | mailx -n -a $REPORT -s "Server Analysis: ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}, $SERVER_NAME" $SENDTO
@@ -740,13 +740,10 @@ getArchiveInfo() {
 		fi
 		msg debug VAR "OES_DISTRO='$OES_DISTRO', OES_SPLEVEL='$OES_SPLEVEL'"
 		SRNUM=0
-		TMPSR=$(echo $ARCHIVE | awk -F_ '{print $2}')
-		if echo $TMPSR | grep '^SR' &>/dev/null; then
-			TMPSR=$(echo $TMPSR | sed -e 's/SR//')
-			if echo $TMPSR | grep '^[0-9]*$' &>/dev/null; then
-				if (( ${#TMPSR} != 11 )); then
-					SRNUM=$TMPSR
-				fi
+		TMPSR=$(grep "^SR#:" $ENVFILE | awk '{print $NF}')
+		if echo $TMPSR | grep '^[0-9]*$' &>/dev/null; then
+			if (( ${#TMPSR} == 11 )); then
+				SRNUM=$TMPSR
 			fi
 		fi
 		VIRT=$(grep -A2 '^Hardware:' $ENVFILE)

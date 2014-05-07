@@ -5,13 +5,16 @@
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
+# Source developed at:
+#  https://github.com/g23guy/sca-appliance-agent
+#
 # norootforbuild
 # neededforbuild
 %define sca_common sca
 
 Name:         sca-appliance-agent
 Summary:      Supportconfig Analysis Appliance Agent
-URL:          https://bitbucket.org/g23guy/sca-appliance-agent
+URL:          https://github.com/g23guy/sca-appliance-agent
 Group:        System/Monitoring
 License:      GPL-2.0
 Autoreqprov:  on

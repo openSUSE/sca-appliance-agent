@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Wed May 14 18:57:36 UTC 2014 - jrecord@suse.com
+Wed May 14 19:04:12 UTC 2014 - jrecord@suse.com
 
-- Created local reportfull.php (bnc#876347)
+- Created local reportfull.php (bnc#877420)
+- Fixed local reportfull.php validation (bnc#876347)
 
 -------------------------------------------------------------------
 Mon May  5 15:45:39 UTC 2014 - jrecord@suse.com

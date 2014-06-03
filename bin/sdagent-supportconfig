@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.18
+SVER=1.0.19
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.18
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 May 14
+# Modified:     2014 Jun 03
 #
 ##############################################################################
 #
@@ -119,9 +119,9 @@ emailSCAReport() {
 		for SENDTO in $EMAIL_REPORT
 		do
 			if (( SRNUM )); then
-				printf "Analysis Date = $REPORT_DATE\nArchive = $INSRC/$ARCHIVE\nFull Report = ${OURSRC}/$(basename ${REPORT})\nProcess ID = [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]\n\nServer = $SERVER_NAME\nNotice Level >= $NOTICE_LEVEL\n\nConditions Checked = $S_CHECKED\nCritical=$S_CRIT, Warning=$S_WARN, Recommended=$S_RECC, Success=$S_SUCC\n" | mailx -n -a $REPORT -s "Server Analysis: SR# $SRNUM, ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}, $SERVER_NAME" $SENDTO
+				printf "Analysis Date = $REPORT_DATE\nArchive = $INSRC/$ARCHIVE\nFull Report = ${OURSRC}/$(basename ${REPORT})\nProcess ID = [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]\n\nServer = $SERVER_NAME\nNotice Level >= $NOTICE_LEVEL\n\nConditions Checked = $S_CHECKED\nCritical=$S_CRIT, Warning=$S_WARN, Recommended=$S_RECC, Success=$S_SUCC\n" | mailx -n -a $REPORT -s "SCA Report for ${SERVER_NAME}: SR# $SRNUM, ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}" $SENDTO
 			else
-				printf "Analysis Date = $REPORT_DATE\nArchive = $INSRC/$ARCHIVE\nFull Report = ${OURSRC}/$(basename ${REPORT})\nProcess ID = [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]\n\nServer = $SERVER_NAME\nNotice Level >= $NOTICE_LEVEL\n\nConditions Checked = $S_CHECKED\nCritical=$S_CRIT, Warning=$S_WARN, Recommended=$S_RECC, Success=$S_SUCC\n" | mailx -n -a $REPORT -s "Server Analysis: ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}, $SERVER_NAME" $SENDTO
+				printf "Analysis Date = $REPORT_DATE\nArchive = $INSRC/$ARCHIVE\nFull Report = ${OURSRC}/$(basename ${REPORT})\nProcess ID = [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]\n\nServer = $SERVER_NAME\nNotice Level >= $NOTICE_LEVEL\n\nConditions Checked = $S_CHECKED\nCritical=$S_CRIT, Warning=$S_WARN, Recommended=$S_RECC, Success=$S_SUCC\n" | mailx -n -a $REPORT -s "SCA Report for ${SERVER_NAME}: ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}" $SENDTO
 			fi
 		done
 	else

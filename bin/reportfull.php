@@ -1,5 +1,5 @@
-<?PHP //echo "<!-- Modified: Date       = 2014 May 14 -->\n";
-	$sver = '1.0.20ag';
+<?PHP //echo "<!-- Modified: Date       = 2014 Jun 04 -->\n";
+	$sver = '1.0.21ag';
 	$givenArchiveID = $argv[1];
 	if ( ! is_numeric($givenArchiveID) ) {
 		die("<HTML><FONT SIZE=\"-1\"><B>ERROR</B>: Invalid ArchiveID, Only numeric values allowed.</FONT><BR></HTML>");			
@@ -23,12 +23,6 @@
 
 	echo "<!DOCTYPE html>\n";
 	echo "<HTML>\n";
-	echo "<script>\n";
-	echo "function showPattern(patternOutput,patternLocation)\n";
-	echo "{\n";
-	echo "alert(patternOutput + \"\n\n\" + \"Pattern: \" + patternLocation);\n";
-	echo "}\n";
-	echo "</script>\n";
 
 // * FUNCTIONS * //
 function loadRow()
@@ -38,15 +32,47 @@ function loadRow()
 	global $SubClassRows, $severity, $DisplaySet, $SeverityColor, $Class, $Category, $Component, $PrimLink, $ResultStr, $PatternLocation, $TID, $BUG, $URLS;
 	global $i;
 
+	$PatternPackage = '';
+	if (strpos($PatternLocation, 'SLE') !== false) {
+		if (strpos($PatternLocation, 'sle12') !== false) {
+			$PatternPackage = 'sca-patterns-sle12';
+		} elseif (strpos($PatternLocation, 'sle11') !== false) {
+			$PatternPackage = 'sca-patterns-sle11';
+		} elseif (strpos($PatternLocation, 'sle10') !== false) {
+			$PatternPackage = 'sca-patterns-sle10';
+		} elseif (strpos($PatternLocation, 'sle9') !== false) {
+			$PatternPackage = 'sca-patterns-sle09';
+		}
+	} elseif (strpos($PatternLocation, 'OES') !== false) {
+		$PatternPackage = 'sca-patterns-oes';
+	} elseif (strpos($PatternLocation, 'HAE') !== false) {
+		$PatternPackage = 'sca-patterns-hae';
+	} elseif (strpos($PatternLocation, 'edirectory') !== false) {
+		$PatternPackage = 'sca-patterns-edir';
+	} elseif (strpos($PatternLocation, 'filr') !== false) {
+		$PatternPackage = 'sca-patterns-filr';
+	} elseif (strpos($PatternLocation, 'groupwise') !== false) {
+		$PatternPackage = 'sca-patterns-groupwise';
+	} elseif (strpos($PatternLocation, 'local/') !== false) {
+		$PatternPackage = 'LOCAL';
+	}
+	if ( $PatternPackage === 'LOCAL')  {
+		$PatternSourceURL = '';
+		$PatternSourceLink = "&nbsp;&nbsp;<A ID=\"PatternLocation\" HREF=\"#\" onClick=\"showPattern('$ResultStr','$PatternLocation');return false;\">&nbsp;</A>";
+	} else {
+		$PatternSourceURL = 'https://github.com/g23guy/' . $PatternPackage . '/blob/master/patterns/' . $PatternLocation;
+		$PatternSourceLink = "&nbsp;&nbsp;<A ID=\"PatternLocation\" HREF=\"" . $PatternSourceURL . "\" TARGET=\"_blank\">&nbsp;</A>";
+	}
+	
 	$SubClassRows[$i] = "<TR STYLE=\"border:1px solid black; background: $ColorWhite; display:$DisplaySet;\" CLASS=\"$Class\">";
 	$SubClassRows[$i] = "$SubClassRows[$i]<TD BGCOLOR=\"$SeverityColor[$severity]\" WIDTH=\"$WidthSeverity\">&nbsp;</TD>";
 	$SubClassRows[$i] = "$SubClassRows[$i]<TD BGCOLOR=\"$ColorGray\" WIDTH=\"$WidthClass\">$Class</TD>";
 	$SubClassRows[$i] = "$SubClassRows[$i]<TD BGCOLOR=\"$ColorGray\" WIDTH=\"$WidthCategory\">$Category</TD>";
 	$SubClassRows[$i] = "$SubClassRows[$i]<TD BGCOLOR=\"$ColorGray\" WIDTH=\"$WidthComponent\">$Component</TD>";
 	if ( isset($PrimLink) ) {
-		$SubClassRows[$i] = "$SubClassRows[$i]<TD><A HREF=\"$PrimLink\" TARGET=\"_blank\">$ResultStr</A>&nbsp;&nbsp;<A ID=\"PatternLocation\" HREF=\"#\" onClick=\"showPattern('$ResultStr','$PatternLocation');return false;\">&nbsp;</A></TD>";
+		$SubClassRows[$i] = "$SubClassRows[$i]<TD><A HREF=\"$PrimLink\" TARGET=\"_blank\">$ResultStr</A>" . $PatternSourceLink . "</TD>";
 	} else {
-		$SubClassRows[$i] = "$SubClassRows[$i]<TD>$ResultStr&nbsp;&nbsp;<A ID=\"PatternLocation\" HREF=\"#\" onClick=\"showPattern('$ResultStr','$PatternLocation');return false;\">&nbsp;</A></TD>";
+		$SubClassRows[$i] = "$SubClassRows[$i]<TD>$ResultStr" . $PatternSourceLink . "</TD>";
 	}
 	$SubClassRows[$i] = "$SubClassRows[$i]<TD WIDTH=\"$WidthSolutions\">";
 	if ( isset($TID) ) { $SubClassRows[$i] = "$SubClassRows[$i]<A HREF=\"$TID\" TARGET=\"_blank\">TID</A>&nbsp;&nbsp;"; }
@@ -199,6 +225,11 @@ function toggle(className)
       elements[i].style.display = 'none';
     }
  }
+}
+
+function showPattern(patternOutput,patternLocation)
+{
+  alert(patternOutput + "\n\n" + "Pattern: " + patternLocation);
 }
 </SCRIPT>
 <?PHP

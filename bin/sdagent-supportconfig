@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.19
+SVER=1.0.20
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.19
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Jun 03
+# Modified:     2014 Jun 04
 #
 ##############################################################################
 #
@@ -821,6 +821,13 @@ patternPreProcessor() {
 		PATTERN_GROUPS="$PATTERN_GROUPS OES/oes${VER_MAJOR}sp${REL}"
 	fi
 
+	# HAE
+	RELEASEINFO=$(egrep -i 'openais|resource-agents|cluster-glue|corosync|csync2|pacemaker|heartbeat' $RPMFILE | grep -v "^sca-patterns-" )
+	if [[ -n "$RELEASEINFO" ]]
+	then
+		PATTERN_GROUPS="$PATTERN_GROUPS HAE"
+	fi
+	
 	# eDirectory
 	RELEASEINFO=$(egrep -i "NDSserv[[:space:]]" $RPMFILE | grep -v "^sca-patterns-" )
 	if [[ -n "$RELEASEINFO" ]]

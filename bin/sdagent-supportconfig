@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.20
+SVER=1.0.22
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.20
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Jun 04
+# Modified:     2014 Jun 10
 #
 ##############################################################################
 #
@@ -114,15 +114,54 @@ emailSCAReport() {
 	*) SEND_NOTICE=0 ;;
 	esac
 	msg debug SEND_NOTICE $SEND_NOTICE
+	if (( SRNUM ))
+	then
+		SUBJECT="SCA Report for ${SERVER_NAME}: SR# $SRNUM, ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}"
+	else
+		SUBJECT="SCA Report for ${SERVER_NAME}: ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}"
+	fi
+	HTML_BODY="<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
+	HTML_BODY="${HTML_BODY}\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">"
+	HTML_BODY="${HTML_BODY}<body>"
+	HTML_BODY="${HTML_BODY}<h1>Supportconfig Analysis Report</h1>"
+	HTML_BODY="${HTML_BODY}<table>"
+	HTML_BODY="${HTML_BODY}<tr><td>Analysis Date:</td><td>$REPORT_DATE</td></tr>"
+	HTML_BODY="${HTML_BODY}<tr><td>Supportconfig Archive:</td><td>$INSRC/$ARCHIVE</td></tr>"
+	HTML_BODY="${HTML_BODY}<tr><td>Server Analyzed:</td><td>$SERVER_NAME</td></tr>"
+	HTML_BODY="${HTML_BODY}<tr><td>Total Patterns Evaluated:</td><td>${PATCOUNT}</td></tr>"
+	HTML_BODY="${HTML_BODY}<tr><td>Applicable to Server:</td><td>${S_CHECKED}</td></tr>"
+	HTML_BODY="${HTML_BODY}<tr><td>&nbsp;&nbsp;Critical:</td><td>$S_CRIT</td></tr>"
+	HTML_BODY="${HTML_BODY}<tr><td>&nbsp;&nbsp;Warning:</td><td>$S_WARN</td></tr>"
+	HTML_BODY="${HTML_BODY}<tr><td>&nbsp;&nbsp;Recommended:</td><td>$S_RECC</td></tr>"
+	HTML_BODY="${HTML_BODY}<tr><td>&nbsp;&nbsp;Success:</td><td>$S_SUCC</td></tr>"
+	HTML_BODY="${HTML_BODY}<tr><td>&nbsp;&nbsp;Process ID:</td><td>[${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]</td></tr>"
+	HTML_BODY="${HTML_BODY}</table></body></html>"
+
 	if (( SEND_NOTICE )); then
 		msg verbose NOTIFY "Sending $NOTICE_LEVEL Status to Email(s): $EMAIL_REPORT"
-		for SENDTO in $EMAIL_REPORT
+		for EMAILTO in $EMAIL_REPORT
 		do
-			if (( SRNUM )); then
-				printf "Analysis Date = $REPORT_DATE\nArchive = $INSRC/$ARCHIVE\nFull Report = ${OURSRC}/$(basename ${REPORT})\nProcess ID = [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]\n\nServer = $SERVER_NAME\nNotice Level >= $NOTICE_LEVEL\n\nConditions Checked = $S_CHECKED\nCritical=$S_CRIT, Warning=$S_WARN, Recommended=$S_RECC, Success=$S_SUCC\n" | mailx -n -a $REPORT -s "SCA Report for ${SERVER_NAME}: SR# $SRNUM, ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}" $SENDTO
-			else
-				printf "Analysis Date = $REPORT_DATE\nArchive = $INSRC/$ARCHIVE\nFull Report = ${OURSRC}/$(basename ${REPORT})\nProcess ID = [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]\n\nServer = $SERVER_NAME\nNotice Level >= $NOTICE_LEVEL\n\nConditions Checked = $S_CHECKED\nCritical=$S_CRIT, Warning=$S_WARN, Recommended=$S_RECC, Success=$S_SUCC\n" | mailx -n -a $REPORT -s "SCA Report for ${SERVER_NAME}: ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}" $SENDTO
-			fi
+			MSG_BODY=$(mktemp /var/tmp/sca/sca.msg.body.XXXXXXXXXXXXXXX)
+			cat << MSG_EOF > $MSG_BODY
+From: SCA Appliance <root>
+To: $EMAILTO
+Subject: $SUBJECT
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="-q1w2e3r4t5"
+
+---q1w2e3r4t5
+Content-Type: text/html
+Content-Disposition: inline
+$HTML_BODY
+
+---q1w2e3r4t5
+Content-Type: text/html; name="$REPORT_BASE"
+Content-Disposition: attachment; filename="$REPORT_BASE"
+$(cat $REPORT)
+---q1w2e3r4t5--
+MSG_EOF
+			cat $MSG_BODY | /usr/sbin/sendmail -t
+			rm -f $MSG_BODY
 		done
 	else
 		msg verbose NOTIFY "Excluded"

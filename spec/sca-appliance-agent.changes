@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
-Wed Jun 11 14:55:13 UTC 2014 - jrecord@suse.com
+Wed Jun 11 17:14:55 UTC 2014 - jrecord@suse.com
 
+- Added missing email boundary
 - Changed email message to HTML and plain text
 - Fixed pattern source links (bnc#881411)
 - Fixed HAE preprocessor (bnc#881404)

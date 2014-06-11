@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.22
+SVER=1.0.23
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -123,11 +123,13 @@ emailSCAReport() {
 
 	if (( SEND_NOTICE )); then
 		msg verbose NOTIFY "Sending $NOTICE_LEVEL Status to Email(s): $EMAIL_REPORT"
+		BOUNDARY="========"$(date +%Y%m%d%N)"=="
+		REPORT_BASE=$(basename $REPORT)
 		for EMAILTO in $EMAIL_REPORT
 		do
 			MSG_BODY=$(mktemp /tmp/sca.msg.body.XXXXXXXXXXXXXXX)
 			cat << MSG_EOF > $MSG_BODY
-From: SCA Appliance <root>
+From: SCA Server <root>
 To: $EMAILTO
 Subject: $SUBJECT
 Content-Type: multipart/alternative; boundary="$BOUNDARY"

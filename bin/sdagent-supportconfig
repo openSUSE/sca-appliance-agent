@@ -9,7 +9,7 @@ SVER=1.0.22
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Jun 10
+# Modified:     2014 Jun 11
 #
 ##############################################################################
 #
@@ -120,45 +120,68 @@ emailSCAReport() {
 	else
 		SUBJECT="SCA Report for ${SERVER_NAME}: ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}"
 	fi
-	HTML_BODY="<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
-	HTML_BODY="${HTML_BODY}\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">"
-	HTML_BODY="${HTML_BODY}<body>"
-	HTML_BODY="${HTML_BODY}<h1>Supportconfig Analysis Report</h1>"
-	HTML_BODY="${HTML_BODY}<table>"
-	HTML_BODY="${HTML_BODY}<tr><td>Analysis Date:</td><td>$REPORT_DATE</td></tr>"
-	HTML_BODY="${HTML_BODY}<tr><td>Supportconfig Archive:</td><td>$INSRC/$ARCHIVE</td></tr>"
-	HTML_BODY="${HTML_BODY}<tr><td>Server Analyzed:</td><td>$SERVER_NAME</td></tr>"
-	HTML_BODY="${HTML_BODY}<tr><td>Total Patterns Evaluated:</td><td>${PATCOUNT}</td></tr>"
-	HTML_BODY="${HTML_BODY}<tr><td>Applicable to Server:</td><td>${S_CHECKED}</td></tr>"
-	HTML_BODY="${HTML_BODY}<tr><td>&nbsp;&nbsp;Critical:</td><td>$S_CRIT</td></tr>"
-	HTML_BODY="${HTML_BODY}<tr><td>&nbsp;&nbsp;Warning:</td><td>$S_WARN</td></tr>"
-	HTML_BODY="${HTML_BODY}<tr><td>&nbsp;&nbsp;Recommended:</td><td>$S_RECC</td></tr>"
-	HTML_BODY="${HTML_BODY}<tr><td>&nbsp;&nbsp;Success:</td><td>$S_SUCC</td></tr>"
-	HTML_BODY="${HTML_BODY}<tr><td>&nbsp;&nbsp;Process ID:</td><td>[${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]</td></tr>"
-	HTML_BODY="${HTML_BODY}</table></body></html>"
 
 	if (( SEND_NOTICE )); then
 		msg verbose NOTIFY "Sending $NOTICE_LEVEL Status to Email(s): $EMAIL_REPORT"
 		for EMAILTO in $EMAIL_REPORT
 		do
-			MSG_BODY=$(mktemp /var/tmp/sca/sca.msg.body.XXXXXXXXXXXXXXX)
+			MSG_BODY=$(mktemp /tmp/sca.msg.body.XXXXXXXXXXXXXXX)
 			cat << MSG_EOF > $MSG_BODY
 From: SCA Appliance <root>
 To: $EMAILTO
 Subject: $SUBJECT
+Content-Type: multipart/alternative; boundary="$BOUNDARY"
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-q1w2e3r4t5"
 
----q1w2e3r4t5
+--${BOUNDARY}
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+* Supportconfig Analysis Report *
+Analysis Date:            ${REPORT_DATE}
+Supportconfig Archive:    ${INSRC}/${ARCHIVE}
+Server Analyzed:          ${SERVER_NAME}
+Total Patterns Evaluated: ${PATCOUNT}
+Applicable to Server:     ${S_CHECKED}
+  Critical:               ${S_CRIT}
+  Warning:                ${S_WARN}
+  Recommended:            ${S_RECC}
+  Success:                ${S_SUCC}
+Source:                   sdagent-supportconfig v${SVER}
+Process ID:               [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]
+
+--${BOUNDARY}
+Content-Type: text/html; charset="ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+<h1>Supportconfig Analysis Report</h1>
+<table>
+<tr><td>Analysis Date:</td><td>${REPORT_DATE}</td></tr>
+<tr><td>Supportconfig Archive:</td><td>${INSRC}/${ARCHIVE}</td></tr>
+<tr><td>Server Analyzed:</td><td>${SERVER_NAME}</td></tr>
+<tr><td>Total Patterns Evaluated:</td><td>${PATCOUNT}</td></tr>
+<tr><td>Applicable to Server:</td><td>${S_CHECKED}</td></tr>
+<tr><td>&nbsp;&nbsp;Critical:</td><td>${S_CRIT}</td></tr>
+<tr><td>&nbsp;&nbsp;Warning:</td><td>${S_WARN}</td></tr>
+<tr><td>&nbsp;&nbsp;Recommended:</td><td>${S_RECC}</td></tr>
+<tr><td>&nbsp;&nbsp;Success:</td><td>${S_SUCC}</td></tr>
+<tr><td>Source:</td><td>sdagent-supportconfig v${SVER}</td></tr>
+<tr><td>Process ID:</td><td>[${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]</td></tr>
+</table>
+</body></html>
+
+--${BOUNDARY}
 Content-Type: text/html
-Content-Disposition: inline
-$HTML_BODY
-
----q1w2e3r4t5
-Content-Type: text/html; name="$REPORT_BASE"
-Content-Disposition: attachment; filename="$REPORT_BASE"
-$(cat $REPORT)
----q1w2e3r4t5--
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=$REPORT_BASE
+$(base64 $REPORT)
+--${BOUNDARY}--
 MSG_EOF
 			cat $MSG_BODY | /usr/sbin/sendmail -t
 			rm -f $MSG_BODY

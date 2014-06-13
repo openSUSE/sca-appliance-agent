@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.10
+SVER=1.0.11
 
 ##############################################################################
 #  sdagent-patterns - SCA Agent Pattern Updater
@@ -9,7 +9,7 @@ SVER=1.0.10
 # Description:  Maintains a current list of patterns from the public pattern
 #               repository.
 # Runs on:      Agent Server
-# Modified:     2014 Mar 24
+# Modified:     2014 Jun 13
 #
 ##############################################################################
 #
@@ -89,7 +89,7 @@ notifyAdmin() {
 		shift
 		for SENDTO in $EMAIL_ADMIN
 		do
-			echo "$*" | /usr/bin/mailx -ns "Agent Pattern Alert: $EVENT_STR" $SENDTO
+			echo "$*" | /usr/bin/mailx -r "SCA Agent Patterns <root>" -ns "Agent Pattern Alert: $EVENT_STR" $SENDTO
 		done
 	fi
 }

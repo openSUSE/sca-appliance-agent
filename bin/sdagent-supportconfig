@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.24
+SVER=1.0.25
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.24
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Jun 13
+# Modified:     2014 Jun 20
 #
 ##############################################################################
 #
@@ -114,11 +114,10 @@ emailSCAReport() {
 	*) SEND_NOTICE=0 ;;
 	esac
 	msg debug SEND_NOTICE $SEND_NOTICE
+	SUBJECT="SCA Report for ${SERVER_NAME}: ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}"
 	if (( SRNUM ))
 	then
-		SUBJECT="SCA Report for ${SERVER_NAME}: SR# $SRNUM, ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}"
-	else
-		SUBJECT="SCA Report for ${SERVER_NAME}: ${S_CHECKED}/${PATCOUNT}, ${S_CRIT}:${S_WARN}:${S_RECC}:${S_SUCC}"
+		SUBJECT="${SUBJECT} (SR# $SRNUM)"
 	fi
 
 	if (( SEND_NOTICE )); then

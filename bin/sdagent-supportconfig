@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.25
+SVER=1.0.26
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.25
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Jun 20
+# Modified:     2014 Jun 23
 #
 ##############################################################################
 #
@@ -126,6 +126,12 @@ emailSCAReport() {
 		REPORT_BASE=$(basename $REPORT)
 		for EMAILTO in $EMAIL_REPORT
 		do
+			if echo $INSRC | grep 'ftp://' &>/dev/null
+			then
+				SUPPORTCONFIG_ARCHIVE="<A HREF=\"${INSRC}/${ARCHIVE}\">${INSRC}/${ARCHIVE}</A>"
+			else
+				SUPPORTCONFIG_ARCHIVE="${INSRC}/${ARCHIVE}"
+			fi
 			MSG_BODY=$(mktemp /tmp/sca.msg.body.XXXXXXXXXXXXXXX)
 			cat << MSG_EOF > $MSG_BODY
 From: SCA Server <root>
@@ -163,7 +169,7 @@ Content-Transfer-Encoding: 7bit
 <h1>Supportconfig Analysis Report</h1>
 <table>
 <tr><td>Analysis Date:</td><td>${REPORT_DATE}</td></tr>
-<tr><td>Supportconfig Archive:</td><td>${INSRC}/${ARCHIVE}</td></tr>
+<tr><td>Supportconfig Archive:</td><td>${SUPPORTCONFIG_ARCHIVE}</td></tr>
 <tr><td>Server Analyzed:</td><td>${SERVER_NAME}</td></tr>
 <tr><td>Total Patterns Evaluated:</td><td>${PATCOUNT}</td></tr>
 <tr><td>Applicable to Server:</td><td>${S_CHECKED}</td></tr>

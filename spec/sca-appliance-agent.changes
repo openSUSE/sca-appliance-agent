@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
-Mon Jun 23 17:44:13 UTC 2014 - jrecord@suse.com
+Wed Jun 25 20:51:04 UTC 2014 - jrecord@suse.com
 
+- Fixed sdagent-patterns email notification
 - Added ftp link to archive email
 - Fixed SCA Report subject line
 

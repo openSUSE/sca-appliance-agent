@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.11
+SVER=1.0.12
 
 ##############################################################################
 #  sdagent-patterns - SCA Agent Pattern Updater
@@ -9,7 +9,7 @@ SVER=1.0.11
 # Description:  Maintains a current list of patterns from the public pattern
 #               repository.
 # Runs on:      Agent Server
-# Modified:     2014 Jun 13
+# Modified:     2014 Jun 25
 #
 ##############################################################################
 #
@@ -116,7 +116,8 @@ repoRefreshed() {
 	msg normal PATTERNS "Refreshing SCA Pattern Repository"
 	zypper --no-gpg-checks --non-interactive refresh &>/dev/null
 	RC=$?
-	if (( RC )); then
+	if (( RC )); then						[ $EMAIL_LEVEL -gt $EMAIL_MIN ] && notifyAdmin "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+
 		msg min ERROR "Cannot refresh pattern repository, zypper error $RC"
 		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Agent $AGENT_ID cannot refresh pattern repository' "ERROR: Failed to refresh pattern repository on AgentID $AGENT_ID"
 	fi
@@ -181,6 +182,12 @@ else
 					exit 3
 				else
 					msg min PATTERNS "v$SVER -- $PAT_COUNT patterns checked in on Agent $AGENT_ID, New patterns: $PAT_COUNT_CHANGE"
+					if (( PAT_COUNT_CHANGE != 0 ))
+					then
+						[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+					else
+						[ $EMAIL_LEVEL -ge $EMAIL_VERBOSE ] && notifyAdmin "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+					fi
 				fi
 			else
 				mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentMessage='Disabling Agent, No patterns found', Patterns=$PAT_COUNT, AgentState='Inactive' WHERE AgentID=$AGENT_ID"
@@ -190,7 +197,12 @@ else
 					exit 3
 				else
 					msg min PATTERNS "v$SVER -- $PAT_COUNT patterns on Agent $AGENT_ID"
-					[ $EMAIL_LEVEL -gt $EMAIL_MIN ] && notifyAdmin "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"					
+					if (( PAT_COUNT_CHANGE != 0 ))
+					then
+						[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+					else
+						[ $EMAIL_LEVEL -ge $EMAIL_VERBOSE ] && notifyAdmin "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+					fi
 				fi
 			fi
 		else

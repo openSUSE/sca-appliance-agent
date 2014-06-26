@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.3
+SVER=1.0.4
 
 ##############################################################################
 #  sdagent-monitor - SCA Agent Monitor Tool
@@ -8,7 +8,7 @@ SVER=1.0.3
 #
 # Description:  Monitors the agent server CPU utilization
 # Runs on:      Agent Server
-# Modified:     2014 Jun 13
+# Modified:     2014 Jun 26
 #
 ##############################################################################
 #
@@ -62,7 +62,7 @@ notifyAdmin() {
 	shift
 	for SENDTO in $EMAIL_ADMIN
 	do
-		echo "$*" | /usr/bin/mailx -r "SCA Agent Monitor <root>" -ns "Agent Monitor Alert: $EVENT_STR" $SENDTO
+		echo "$*" | /usr/bin/mailx -r "SCA Agent Notification <root>" -ns "Monitor Alert: $EVENT_STR" $SENDTO
 	done
 }
 

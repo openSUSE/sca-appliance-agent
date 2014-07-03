@@ -1,4 +1,4 @@
-.TH SDAGENT-CONFIG 8 "20 Mar 2014" "sca-appliance-agent" "Supportconfig Analysis Manual"
+.TH SDAGENT-CONFIG 8 "03 Jul 2014" "sca-appliance-agent" "Supportconfig Analysis Manual"
 .SH NAME
 sdagent-config - SCA Agent Configuration Tool
 .SH SYNOPSIS
@@ -9,12 +9,6 @@ Configures the Agent Server to communicate with the Broker Server. the \fBsdagen
 .TP
 \fB\-H\fR
 Show this help screen.
-.TP
-\fB\-D\fR
-Bypass the initial agent pattern download. The SVN repository is stored in code.google.com. This option can be used if you don't have network access to google code. If you use this option, you must get the patterns manually and copy them to the server. The \fBsdagent-patterns\fR use svn up to update the pattern directory.
-.TP
-\fB\-c\fR
-Do not clear the screen. Helpful for running in scripts.
 .TP
 \fB\-h\fR \fIstring\fR
 The DNS hostname for the Broker Server.
@@ -35,7 +29,7 @@ Examples:
 .B file:///srv/ftp/
 .RE
 .TP
-\fB\-i\fR \fIstring\fR
+\fB\-o\fR \fIstring\fR
 Output source URL. Specifies the location to put HTML reports if POST_REPORT is set. If not specified, the same value for the input source will be used for the output source. See \fBsdagent.conf\fR(5)
 .TP
 \fB\-l\fR \fIstring\fR

@@ -1,10 +1,10 @@
-.TH SDAGENT 8 "20 Mar 2014" "sca-appliance-agent" "Supportconfig Analysis Manual"
+.TH SDAGENT 8 "03 Jul 2014" "sca-appliance-agent" "Supportconfig Analysis Manual"
 .SH NAME
 sdagent - SCA Agent Manager
 .SH SYNOPSIS
 sdagent [OPTIONS]
 .SH DESCRIPTION
-The agent assigns new archives to worker threads to be analyzed. The agent worker will download, extract and analyze the supportconfig archive assigned to it. The agent and agent workers update the MySQL database with an archive status as it processes each archive. An agent can run on the broker server or its own dedicated server. The Agent Server must have MySQL access to the MySQL database on the broker server. It also must have a copy of the SVN repository containing all the supportconfig diagnostic patterns.
+The agent manager assigns new archives to worker threads to be analyzed. The agent worker will download, extract and analyze the supportconfig archive assigned to it. The agent and agent workers update the MySQL database with an archive status as it processes each archive. An agent can run on the broker server or its own dedicated server. The Agent Server must have MySQL access to the MySQL database on the broker server. It also must have a copy of the SVN repository containing all the supportconfig diagnostic patterns.
 .SH OPTIONS
 .TP
 \fB\-h\fR

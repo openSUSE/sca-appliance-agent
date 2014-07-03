@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul  3 19:50:27 UTC 2014 - jrecord@suse.com
+
+- Removed sdagent-monitor
+- Updated man pages
+
+-------------------------------------------------------------------
 Thu Jun 26 22:43:19 UTC 2014 - jrecord@suse.com
 
 - Created uniform email address

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.14
+SVER=1.0.14.dev.1
 
 ##############################################################################
 #  sdagent-patterns - SCA Agent Pattern Updater
@@ -9,7 +9,7 @@ SVER=1.0.14
 # Description:  Maintains a current list of patterns from the public pattern
 #               repository.
 # Runs on:      Agent Server
-# Modified:     2014 Jun 26
+# Modified:     2014 Jul 08
 #
 ##############################################################################
 #
@@ -37,6 +37,7 @@ PAT_COUNT_PRE=0
 PAT_COUNT_POST=0
 PAT_COUNT_CHANGE=0
 PAT_COUNT=0
+declare -a MOD_COUNT
 SVN_FILE="${SCA_WORK}/svn-change-list.txt"
 PATTERNS="${SCA_WORK}/manifest.patterns"
 
@@ -114,6 +115,8 @@ agentAccess() {
 
 repoRefreshed() {
 	msg normal PATTERNS "Refreshing SCA Pattern Repository"
+return 0
+######
 	zypper --no-gpg-checks --non-interactive refresh &>/dev/null
 	RC=$?
 	if (( RC )); then						[ $EMAIL_LEVEL -gt $EMAIL_MIN ] && notifyAdmin "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
@@ -135,6 +138,38 @@ updatePatterns() {
 	return $RC
 }
 
+getPackageFiles() {
+	TYPE=$1
+	for PKG in $PKG_LIST
+	do
+		FILE="${SCA_WORK}/_update_${TYPE}_${PKG}"
+		rpm -q --dump $PKG | grep -v '0000000000' | awk '{print $1,$4}' | sort  > $FILE 2>/dev/null
+	done
+}
+
+getPackageStats() {
+	for PKG in $PKG_LIST
+	do
+		FILE="${SCA_WORK}/_update_diff_${PKG}"
+		diff -u0 ${SCA_WORK}/_update_before_${PKG} ${SCA_WORK}/_update_after_${PKG} | sed -e '1,2d' | grep -v '^@' > $FILE
+		NEW_LIST=$(grep '^+' $FILE | sed -e 's/^\+//' | awk '{print $1}')
+		REMOVED_LIST=$(grep '^-' $FILE | sed -e 's/^-//' | awk '{print $1}')
+		NEW_CNT=$(grep '^+' $FILE | wc -l)
+		REMOVED_CNT=$(grep '^-' $FILE | wc -l)
+		MODIFIED_CNT=0
+		for PAT in $REMOVED_LIST
+		do
+			if echo $NEW_LIST | grep $PAT &>/dev/null
+			then
+				((MODIFIED_CNT++))
+				((NEW_CNT--))
+				((REMOVED_CNT--))
+			fi
+		done
+		MOD_COUNT+=( "${PKG},${NEW_CNT},${REMOVED_CNT},${MODIFIED_CNT}" )
+	done
+}
+
 while getopts ':hu' TMPOPT
 do
 	case $TMPOPT in
@@ -148,7 +183,19 @@ done
 PAT_COUNT_PRE=$(find $SCA_PATTERN_PATH -type f -perm /100 | sort | uniq | wc -l)
 if (( UPDATE_FROM_PATTERN_REPO )); then
 	if repoRefreshed; then
-		updatePatterns
+		PKG_LIST=$(rpm -qa --qf "%{NAME}\n" | grep 'sca-patterns-')
+		getPackageFiles before
+#		updatePatterns
+		echo "Press Enter when Ready"
+		read A
+		getPackageFiles after
+		getPackageStats
+		I=0
+		while (( I < ${#MOD_COUNT[@]} ))
+		do
+			echo ${MOD_COUNT[$I]}
+			((I++))
+		done
 	fi
 fi
 PAT_COUNT_POST=$(find $SCA_PATTERN_PATH -type f -perm /100 | sort | uniq | wc -l)

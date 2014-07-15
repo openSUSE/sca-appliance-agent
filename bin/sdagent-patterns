@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.14.dev.4
+SVER=1.0.20
 
 ##############################################################################
 #  sdagent-patterns - SCA Agent Pattern Updater
@@ -9,7 +9,7 @@ SVER=1.0.14.dev.4
 # Description:  Maintains a current list of patterns from the public pattern
 #               repository.
 # Runs on:      Agent Server
-# Modified:     2014 Jul 11
+# Modified:     2014 Jul 15
 #
 ##############################################################################
 #
@@ -172,7 +172,7 @@ getPackageStats() {
 		UPDATE_COUNT_DEL=$(( UPDATE_COUNT_DEL + REMOVED_CNT ))
 		UPDATE_COUNT_MOD=$(( UPDATE_COUNT_MOD + MODIFIED_CNT ))
 		cat << MSG_HTML_EOF >> $MSG_PAT_HTML
-<tr><td>$PKG</td><td>$NEW_CNT</td><td>$REMOVED_CNT</td><td>$MODIFIED_CNT</td></tr>
+<tr><td align="left">$PKG</td><td align="center">$NEW_CNT</td><td align="center">$REMOVED_CNT</td><td align="center">$MODIFIED_CNT</td></tr>
 MSG_HTML_EOF
 		cat << MSG_TEXT_EOF >> $MSG_PAT_TEXT
 ${PKG}: New, $NEW_CNT; Removed: $REMOVED_CNT; Modified: $MODIFIED_CNT
@@ -204,7 +204,9 @@ Total Active Patterns:  $PAT_COUNT
   Removed: $UPDATE_COUNT_DEL
   Modified: $UPDATE_COUNT_MOD
 Local Agent Patterns:  $PAT_COUNT_LOCAL
+Pattern Modules:  $MODULES
 Agent ID:  $AGENT_ID
+
 
 * Package Details *
 MEOF1
@@ -229,11 +231,12 @@ Content-Transfer-Encoding: 7bit
 <tr><td>&nbsp;&nbsp;Modified:</td><td>$UPDATE_COUNT_MOD</td></tr>
 <tr><td>Local Agent Patterns:</td><td>$PAT_COUNT_LOCAL</td></tr>
 <tr><td>Agent ID:</td><td>$AGENT_ID</td></tr>
+<tr><td>Pattern Modules:</td><td>$MODULES</td></tr>
 </table>
 <br />
 <h2>Package Details</h2>
-<table>
-<tr><td>Package</td><td>New</td><td>Removed</td><td>Modified</td></tr>
+<table cellpadding="2">
+<tr><td align="left"><b>Package<b></td><td align="center"><b>New</b></td><td align="center"><b>Removed</b></td><td align="center"><b>Modified</b></td></tr>
 MEOF2
 
 cat $MSG_PAT_HTML >> $MSG_BODY
@@ -258,9 +261,9 @@ do
 	esac
 done
 
-PAT_COUNT_PRE=$(find $SCA_PATTERN_PATH -type f -perm /100 | sort | uniq | wc -l)
 PAT_COUNT_LOCAL=$(find ${SCA_PATTERN_PATH}/local -type f -perm /100 | sort | uniq | wc -l)
 if (( UPDATE_FROM_PATTERN_REPO )); then
+	PAT_COUNT_PRE=$(find $SCA_PATTERN_PATH -type f -perm /100 | sort | uniq | wc -l)
 	if repoRefreshed; then
 		PKG_LIST=$(rpm -qa --qf "%{NAME}\n" | grep 'sca-patterns-' | sort)
 		getPackageFiles before
@@ -268,9 +271,11 @@ if (( UPDATE_FROM_PATTERN_REPO )); then
 		getPackageFiles after
 		getPackageStats
 	fi
+	PAT_COUNT_POST=$(find $SCA_PATTERN_PATH -type f -perm /100 | sort | uniq | wc -l)
+	PAT_COUNT_CHANGE=$(( UPDATE_COUNT_NEW + UPDATE_COUNT_DEL + UPDATE_COUNT_MOD ))
+else
+	PAT_COUNT_POST=$(find $SCA_PATTERN_PATH -type f -perm /100 | sort | uniq | wc -l)
 fi
-PAT_COUNT_POST=$(find $SCA_PATTERN_PATH -type f -perm /100 | sort | uniq | wc -l)
-PAT_COUNT_CHANGE=$(( PAT_COUNT_POST - PAT_COUNT_PRE ))
 PAT_COUNT=$PAT_COUNT_POST
 agentAccess
 AGENT_STATE=$?
@@ -291,7 +296,7 @@ else
 				else
 					MODULES=$(echo $RPM_MODS)
 				fi
-				AGENT_MSG="$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+				AGENT_MSG="$PAT_COUNT with $PAT_COUNT_CHANGE changes, Modules: $MODULES"
 				msg normal STATUS "$AGENT_MSG"
 				mysql $DB_CONNECT -e "UPDATE Agents SET AgentEvent=NOW(), AgentMessage='$AGENT_MSG', Patterns=$PAT_COUNT WHERE AgentID=$AGENT_ID"
 				if [ $? -gt 0 ]; then
@@ -299,12 +304,12 @@ else
 					[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && notifyAdmin 'Agent $AGENT_ID Update Failed' "ERROR: Failed to update AgentID $AGENT_ID"
 					exit 3
 				else
-					msg min PATTERNS "v$SVER -- $PAT_COUNT patterns checked in on Agent $AGENT_ID, New patterns: $PAT_COUNT_CHANGE"
+					msg min PATTERNS "v$SVER -- $PAT_COUNT patterns checked in on Agent $AGENT_ID, Changes: $PAT_COUNT_CHANGE"
 					if (( PAT_COUNT_CHANGE != 0 ))
 					then
-						[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && sendEmailUpdate "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+						[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && sendEmailUpdate
 					else
-						[ $EMAIL_LEVEL -ge $EMAIL_VERBOSE ] && sendEmailUpdate "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+						[ $EMAIL_LEVEL -ge $EMAIL_VERBOSE ] && sendEmailUpdate
 					fi
 				fi
 			else
@@ -315,11 +320,11 @@ else
 					exit 3
 				else
 					msg min PATTERNS "v$SVER -- $PAT_COUNT patterns on Agent $AGENT_ID"
-					if (( PAT_COUNT_CHANGE != 0 ))
+					if (( PAT_COUNT_CHANGE  ))
 					then
-						[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && sendEmailUpdate "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+						[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && sendEmailUpdate
 					else
-						[ $EMAIL_LEVEL -ge $EMAIL_VERBOSE ] && sendEmailUpdate "Patterns: $PAT_COUNT, New: $PAT_COUNT_CHANGE" "$PAT_COUNT with $PAT_COUNT_CHANGE new patterns, Modules: $MODULES"
+						[ $EMAIL_LEVEL -ge $EMAIL_VERBOSE ] && sendEmailUpdate
 					fi
 				fi
 			fi

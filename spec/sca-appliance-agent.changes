@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 15 20:17:36 UTC 2014 - jrecord@suse.com
+
+- Email update report when patterns are updated
+
+-------------------------------------------------------------------
 Thu Jul  3 19:50:27 UTC 2014 - jrecord@suse.com
 
 - Removed sdagent-monitor

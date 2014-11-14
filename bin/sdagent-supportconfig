@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.27
+SVER=1.0.30
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.27
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Jun 26
+# Modified:     2014 Nov 14
 #
 ##############################################################################
 #
@@ -888,6 +888,14 @@ patternPreProcessor() {
 		REL=$(echo "$RELEASEINFO" | grep PATCHLEVEL | head -1 | awk '{print $NF}')
 		PATTERN_GROUPS="$PATTERN_GROUPS OES/oes${VER_MAJOR}all"
 		PATTERN_GROUPS="$PATTERN_GROUPS OES/oes${VER_MAJOR}sp${REL}"
+	fi
+
+	# SUSE Manager (SUMA)
+	RELEASEINFO=$(egrep '^susemanager[[:space:]]|^susemanager-proxy[[:space:]]' $RPMFILE)
+	if [[ -n "$RELEASEINFO" ]]
+	then
+		VER=$(echo "$RELEASEINFO" | awk '{print $NF}' | awk -F\. '{print $1$2}')
+		PATTERN_GROUPS="$PATTERN_GROUPS suma/suma${VER}all"
 	fi
 
 	# HAE

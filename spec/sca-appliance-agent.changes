@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar  6 00:35:55 UTC 2015 - jrecord@suse.com
+
+- Fixed archiving when ARCHIVE_MODE is set
+- Updated Documentation link in SCA Report
+
+-------------------------------------------------------------------
 Fri Nov 14 23:03:25 UTC 2014 - jrecord@suse.com
 
 - Added SUSE Manager pattern support to sdagent-supportconfig

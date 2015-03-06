@@ -1,15 +1,15 @@
 #!/bin/bash
 
-SVER=1.0.30
+SVER=1.0.32
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
-# Copyright (C) 2014 SUSE LLC
+# Copyright (C) 2015 SUSE LLC
 #
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2014 Nov 14
+# Modified:     2015 Mar 05
 #
 ##############################################################################
 #
@@ -314,27 +314,14 @@ finishWorker() {
 	msg debug '> finishWorker'
 	ARCH_STATE="$1"
 	if (( ARCHIVE_MODE )); then
-		if [[ "$ARCH_STATE" != "Retry" ]]; then
-			case $INSRC_TYPE in
-			file) 
-				ARCHFILES="${INSRC_DIR}/${ARCHIVE}"
-				msg verbose ARCHIVE "ARCHIVE_MODE enabled, archiving ${ARCHFILES}*"
-				mv ${ARCHFILES}* ${ARCHIVE_DIR}/
-				;;
-			esac
-		fi
-	else
-		if [[ "$ARCH_STATE" != "Retry" ]]; then
-			case $INSRC_TYPE in
-			file) 
-				ARCHFILES="${INSRC_DIR}/${ARCHIVE}"
-				msg verbose ARCHIVE "ARCHIVE_MODE disabled, removing ${ARCHFILES}*"
-				rm -f ${ARCHFILES}*
-				;;
-			esac
+		if [[ "$ARCH_STATE" == "Done" ]]; then
+			ARCHFILES="${INDIR}/"
+			msg verbose ARCHIVE "ARCHIVE_MODE enabled, archiving ${ARCHFILES}\* to ${ARCHIVE_DIR}/"
+			bzip2 -9q ${ARCHFILES}*.tar
+			mv ${ARCHFILES}* ${ARCHIVE_DIR}/
 		fi
 	fi
-	[ -n "$2" ] && ARCH_MSG="'$2'" || ARCH_MSG="NULL"
+	[[ -n "$2" ]] && ARCH_MSG="'$2'" || ARCH_MSG="NULL"
 	CPU_IDLE=$(vmstat 1 2 | tail -1 | awk '{print $15}')
 	CPU_UTIL=$((100-CPU_IDLE))
 	mysql $DB_CONNECT -e "UPDATE Archives SET ArchiveState='$ARCH_STATE', ArchiveMessage=$ARCH_MSG, ArchiveEvent=NOW() WHERE ArchiveID=$ARCHIVE_ID"

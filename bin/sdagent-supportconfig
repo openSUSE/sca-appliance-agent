@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.32
+SVER=1.0.35
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER=1.0.32
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2015 Mar 05
+# Modified:     2015 Nov 03
 #
 ##############################################################################
 #
@@ -315,10 +315,15 @@ finishWorker() {
 	ARCH_STATE="$1"
 	if (( ARCHIVE_MODE )); then
 		if [[ "$ARCH_STATE" == "Done" ]]; then
-			ARCHFILES="${INDIR}/"
-			msg verbose ARCHIVE "ARCHIVE_MODE enabled, archiving ${ARCHFILES}\* to ${ARCHIVE_DIR}/"
-			bzip2 -9q ${ARCHFILES}*.tar
-			mv ${ARCHFILES}* ${ARCHIVE_DIR}/
+			ARCH_FILES="${INDIR}/*.tar"
+			msg verbose ARCHIVE "ARCHIVE_MODE enabled, archiving ${ARCH_FILES} to ${ARCHIVE_DIR}/"
+			for ARCHIVE in ${ARCH_FILES}
+			do
+				bzip2 -9q $ARCHIVE
+				ARCH_SOURCE=${ARCHIVE}.bz2
+				ARCH_TARGET=$(echo $ARCH_SOURCE | sed -e 's!.tar.bz2$!.tbz!')
+				mv ${ARCH_SOURCE} ${ARCHIVE_DIR}/${ARCH_TARGET}
+			done
 		fi
 	fi
 	[[ -n "$2" ]] && ARCH_MSG="'$2'" || ARCH_MSG="NULL"

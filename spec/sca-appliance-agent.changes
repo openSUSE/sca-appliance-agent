@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jun  2 23:12:18 UTC 2017 - jason.record@suse.com
+
+- Fixed incorrect SLE12SP2 global library value (bsc#1042515)
+
+-------------------------------------------------------------------
 Fri Mar  6 00:35:55 UTC 2015 - jrecord@suse.com
 
 - Fixed archiving when ARCHIVE_MODE is set

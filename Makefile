@@ -51,7 +51,7 @@ build: clean install
 
 obsetup: clean
 	@echo [obsetup]: Setup OBS Novell:NTS:Unstable/$(OBSPACKAGE)
-	@osc -A 'https://api.opensuse.org/' co Novell:NTS:Unstable/$(OBSPACKAGE) &>/dev/null
+	@osc -A 'https://api.opensuse.org/' co Novell:NTS:Unstable/$(OBSPACKAGE)
 
 obclean: 
 	@echo [obclean]: Cleaning OBS Novell:NTS:Unstable

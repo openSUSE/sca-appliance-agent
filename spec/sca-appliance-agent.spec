@@ -60,7 +60,8 @@ install -m 644 man/*.5.gz %{buildroot}%{_mandir}/man5
 %files
 %defattr(-,root,root)
 %dir %{_docdir}/%{name}
-%dir %{sca_libdir}/php
+%dir %{sca_configdir}
+%dir %{sca_libdir}
 %{sca_libdir}/php/*
 %{_sbindir}/sdagent*
 %config %{sca_configdir}/sdagent.conf

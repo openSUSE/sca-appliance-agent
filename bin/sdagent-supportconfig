@@ -1,15 +1,15 @@
 #!/bin/bash
 
-SVER=1.0.35
+SVER='1.0.36'
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
-# Copyright (C) 2015 SUSE LLC
+# Copyright (C) 2015-2018 SUSE LLC
 #
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2015 Nov 03
+# Modified:     2018 Jan 03
 #
 ##############################################################################
 #
@@ -26,14 +26,14 @@ SVER=1.0.35
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 #  Authors/Contributors:
-#     Jason Record (jrecord@suse.com)
+#     Jason Record (jason.record@suse.com)
 #
 ##############################################################################
 
 CURRENT_SCRIPT=$(basename $0)
 DEBUGGING_MODE=0
 . /etc/sca/sdagent.conf
-[ -s /etc/sca/sdagent-supportconfig.conf ] && . /etc/sca/sdagent-supportconfig.conf
+[[ -s /etc/sca/sdagent-supportconfig.conf ]] && . /etc/sca/sdagent-supportconfig.conf
 ADMIN_LOG=$(mktemp ${SCA_WORK}/${CURRENT_SCRIPT}.admin.log.XXXXXXXXXX)
 EVENT_FLAGS=( 0 0 0 0 0 0 0 )
 declare -a RESULT_ELEMENT=(META_CLASS META_CATEGORY META_COMPONENT PATTERN_ID PRIMARY_LINK OVERALL OVERALL_INFO META_LINK_)
@@ -74,8 +74,8 @@ msg() {
 	*) CURRENT_LOGLEVEL=$LOGLEVEL_MIN ;;
 	esac
 	shift
-	if [ $LOGLEVEL -ge $CURRENT_LOGLEVEL ]; then
-		[ -n "$2" ] && logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}:$$]: [$1] $2" || logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}:$$]: $1"
+	if [[ $LOGLEVEL -ge $CURRENT_LOGLEVEL ]]; then
+		[[ -n "$2" ]] && logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}:$$]: [$1] $2" || logger -p "user.${FACLEVEL}" "${CURRENT_SCRIPT}[${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}:$$]: $1"
 	fi
 }
 
@@ -91,7 +91,7 @@ logAdminEvent() {
 	sql) EVENT_FLAGS[6]=1 ;;
 	esac
 	shift
-	[ -z "$ARCHIVE" ] && ARCH_DATA='' || ARCH_DATA="Archive=${ARCH_LOCATION}/${ARCHIVE}
+	[[ -z "$ARCHIVE" ]] && ARCH_DATA='' || ARCH_DATA="Archive=${ARCH_LOCATION}/${ARCHIVE}
 
 "
 	case $1 in
@@ -201,16 +201,16 @@ MSG_EOF
 
 emailAdminAlerts() {
 	msg debug "> emailAdminAlerts"
-	if [ -s $ADMIN_LOG ]; then
+	if [[ -s $ADMIN_LOG ]]; then
 		msg verbose NOTIFY "Sending Agent Alert to Email(s): $EMAIL_ADMIN"
 		EVENTS_STR=""
-		[ ${EVENT_FLAGS[0]} -gt 0 ] && EVENTS_STR="ENV $EVENTS_STR"
-		[ ${EVENT_FLAGS[1]} -gt 0 ] && EVENTS_STR="INSRC $EVENTS_STR"
-		[ ${EVENT_FLAGS[2]} -gt 0 ] && EVENTS_STR="OUTSRC $EVENTS_STR"
-		[ ${EVENT_FLAGS[3]} -gt 0 ] && EVENTS_STR="RETRY $EVENTS_STR"
-		[ ${EVENT_FLAGS[4]} -gt 0 ] && EVENTS_STR="PUNT $EVENTS_STR"
-		[ ${EVENT_FLAGS[5]} -gt 0 ] && EVENTS_STR="PAT $EVENTS_STR"
-		[ ${EVENT_FLAGS[6]} -gt 0 ] && EVENTS_STR="SQL $EVENTS_STR"
+		[[ ${EVENT_FLAGS[0]} -gt 0 ]] && EVENTS_STR="ENV $EVENTS_STR"
+		[[ ${EVENT_FLAGS[1]} -gt 0 ]] && EVENTS_STR="INSRC $EVENTS_STR"
+		[[ ${EVENT_FLAGS[2]} -gt 0 ]] && EVENTS_STR="OUTSRC $EVENTS_STR"
+		[[ ${EVENT_FLAGS[3]} -gt 0 ]] && EVENTS_STR="RETRY $EVENTS_STR"
+		[[ ${EVENT_FLAGS[4]} -gt 0 ]] && EVENTS_STR="PUNT $EVENTS_STR"
+		[[ ${EVENT_FLAGS[5]} -gt 0 ]] && EVENTS_STR="PAT $EVENTS_STR"
+		[[ ${EVENT_FLAGS[6]} -gt 0 ]] && EVENTS_STR="SQL $EVENTS_STR"
 		for SENDTO in $EMAIL_ADMIN
 		do
 			cat $ADMIN_LOG | /usr/bin/mailx -r "SCA Agent Notification <root>" -ns "Worker Alert [${AGENT_ID}:${WORKER_ID}:${ARCHIVE_ID}]: ${EVENTS_STR}: $ARCHIVE" $SENDTO
@@ -224,7 +224,7 @@ getCurlError() {
 	msg debug " >> getCurlError"
 	CURL_ERRORS='/usr/share/doc/packages/sca/curl.codes.txt'
 	ERRSTR=$(grep " ($RCODE) " $CURL_ERRORS 2>/dev/null | cut -d' ' -f1,2)
-	if [ -z "$ERRSTR" ]; then
+	if [[ -z "$ERRSTR" ]]; then
 		ERRSTR="Unknown Error ($RCODE)"
 	fi
 	msg debug RESULT "Curl Error Transliteration: $ERRSTR"
@@ -236,10 +236,10 @@ confirmArchDir() {
 	VALID_SUPPORTCONFIG_ARCHIVE=0
 	ARCH_MODE=700
 	ENVFILE="${ARCHDIR}/basic-environment.txt"
-	if [ -d $ARCHDIR ]; then
+	if [[ -d $ARCHDIR ]]; then
 		msg debug "ARCHDIR" "$ARCHDIR - Found"
 		chmod -fR $ARCH_MODE $ARCHDIR
-		if [ -s $ENVFILE ]; then
+		if [[ -s $ENVFILE ]]; then
 			VALID_SUPPORTCONFIG_ARCHIVE=1
 		else
 			CREATE_REPORT=0
@@ -248,22 +248,22 @@ confirmArchDir() {
 	else
 		msg debug "ARCHDIR" "$ARCHDIR - NOT Found"
 		TMPDIR=$(find ${WORKDIR}/ -maxdepth 1 -type d | grep -v "${WORKDIR}/$")
-		if [ -n "$TMPDIR" ]; then
+		if [[ -n "$TMPDIR" ]]; then
 			chmod -fR $ARCH_MODE $TMPDIR
 			TMPDIRCNT=$(echo "$TMPDIR" | wc -l)
 		else
 			TMPDIRCNT=0
 		fi
-		if [ $TMPDIRCNT -lt 1 ]; then
+		if [[ $TMPDIRCNT -lt 1 ]]; then
 			CREATE_REPORT=0
 			puntArchive $EMAIL_VERBOSE "Invalid Supportconfig: No archive subdirectory found"
-		elif [ $TMPDIRCNT -gt 1 ]; then
+		elif [[ $TMPDIRCNT -gt 1 ]]; then
 			CREATE_REPORT=0
 			puntArchive $EMAIL_VERBOSE "Invalid Supportconfig: Multiple directories in extracted archive: $TMPDIRCNT"
 		else
 			TMPDIR=$(echo "$TMPDIR" | tail -1)
 			ENVFILE="${TMPDIR}/basic-environment.txt"
-			if [ -s $ENVFILE ]; then
+			if [[ -s $ENVFILE ]]; then
 				msg verbose "RENAME" "mv $TMPDIR ${WORKDIR}/${ARCHDIR}"
 				mv $TMPDIR ${WORKDIR}/${ARCHDIR}
 				chmod -fR $ARCH_MODE ${WORKDIR}/${ARCHDIR}
@@ -285,7 +285,7 @@ confirmArchDir() {
 retryArchive() {
 	msg debug "> retryArchive"
 	msg min AGENT "v${SVER} -- Retry Archive: ${ARCHIVE}, Message: $*"
-	[ $EMAIL_LEVEL -ge $EMAIL_VERBOSE ] && logAdminEvent retry warning "$*"
+	[[ $EMAIL_LEVEL -ge $EMAIL_VERBOSE ]] && logAdminEvent retry warning "$*"
 	mysql $DB_CONNECT -e "UPDATE Archives SET RetryCount=RetryCount+1 WHERE ArchiveID=${ARCHIVE_ID}"
 	finishWorker Retry "$*"
 	msg debug "< retryArchive"
@@ -298,7 +298,7 @@ puntArchive() {
 	MSG_LEVEL=$1
 	shift
 	msg min AGENT "v${SVER} -- Failed Archive: ${ARCHIVE}, Error: $*"
-	[ $EMAIL_LEVEL -ge $MSG_LEVEL ] && logAdminEvent punt error "$*"
+	[[ $EMAIL_LEVEL -ge $MSG_LEVEL ]] && logAdminEvent punt error "$*"
 	PUNTING=1
 	if (( CREATE_REPORT )); then
 		createPuntReport "$*"
@@ -341,7 +341,7 @@ setArchiveState() {
 	if (( ARCHIVE_ID )); then
 		STATE="$1"
 		ERROR_MSG="$2"
-		[ -n "$ERROR_MSG" ] && ERROR_MSG="'$ERROR_MSG'" || ERROR_MSG="NULL"
+		[[ -n "$ERROR_MSG" ]] && ERROR_MSG="'$ERROR_MSG'" || ERROR_MSG="NULL"
 		mysql $DB_CONNECT -e "UPDATE Archives SET ArchiveState='$STATE', ArchiveEvent=NOW(), ArchiveMessage=$ERROR_MSG WHERE ArchiveID=$ARCHIVE_ID"
 	else
 		msg debug ARCHIVE_ID "Missing"
@@ -352,7 +352,7 @@ setAgentState() {
 	if (( AGENT_ID )); then
 		STATE="$1"
 		ERROR_MSG="$2"
-		[ -n "$ERROR_MSG" ] && ERROR_MSG="'$ERROR_MSG'" || ERROR_MSG="NULL"
+		[[ -n "$ERROR_MSG" ]] && ERROR_MSG="'$ERROR_MSG'" || ERROR_MSG="NULL"
 		mysql $DB_CONNECT -e "UPDATE Agents SET AgentState='$STATE', AgentEvent=NOW(), AgentMessage=$ERROR_MSG WHERE AgentID=$AGENT_ID"
 	else
 		msg debug AGENT_ID "Missing"
@@ -367,7 +367,7 @@ importArchiveSQL() {
 	cat $IMPORT_FILE | mysql $DB_CONNECT &> ${WORKDIR}/mysql.out
 	RC=$?
 	if (( RC )); then
-		[ $EMAIL_LEVEL -ge $EMAIL_NORMAL ] && logAdminEvent sql failed "$(cat ${WORKDIR}/mysql.out)"
+		[[ $EMAIL_LEVEL -ge $EMAIL_NORMAL ]] && logAdminEvent sql failed "$(cat ${WORKDIR}/mysql.out)"
 		msg debug CMD "mv $IMPORT_FILE ${HOLDIR}/"
 		mv $IMPORT_FILE ${HOLDIR}/
 		puntArchive $EMAIL_NORMAL "SQL Import Failed"
@@ -556,14 +556,14 @@ resultEntrySQL() {
 	loadResultEntry
 	OVERALL_INFO=${OVERALL_INFO//\'/\\\'} # Escape any single quotes (') in the string
 	printf "%s" "(NULL, '$ARCHIVE_ID', '$META_CLASS', '$META_CATEGORY', '$META_COMPONENT', '$PATTERN_ID', '$PATTERN_LOC', $OVERALL, '$OVERALL_INFO', " >> $IMPORT_FILE
-	[ -n "$PRIMARY_LINK" ] && printf "%s" "'$PRIMARY_LINK', " >> $IMPORT_FILE || printf "%s" "NULL, " >> $IMPORT_FILE
-	[ -n "$MLTID" ] && printf "%s" "'$MLTID', " >> $IMPORT_FILE || printf "%s" "NULL, " >> $IMPORT_FILE
-	[ -n "$MLBUG" ] && printf "%s" "'$MLBUG', " >> $IMPORT_FILE || printf "%s" "NULL, " >> $IMPORT_FILE
+	[[ -n "$PRIMARY_LINK" ]] && printf "%s" "'$PRIMARY_LINK', " >> $IMPORT_FILE || printf "%s" "NULL, " >> $IMPORT_FILE
+	[[ -n "$MLTID" ]] && printf "%s" "'$MLTID', " >> $IMPORT_FILE || printf "%s" "NULL, " >> $IMPORT_FILE
+	[[ -n "$MLBUG" ]] && printf "%s" "'$MLBUG', " >> $IMPORT_FILE || printf "%s" "NULL, " >> $IMPORT_FILE
 	for (( I=0; I<9; I++ ))
 	do
-		[ -n "${URLS[$I]}" ] && printf "%s" "'${URLS[$I]}', " >> $IMPORT_FILE || printf "%s" "NULL, " >> $IMPORT_FILE
+		[[ -n "${URLS[$I]}" ]] && printf "%s" "'${URLS[$I]}', " >> $IMPORT_FILE || printf "%s" "NULL, " >> $IMPORT_FILE
 	done
-	[ -n "${URLS[$I]}" ] && printf "%s" "'${URLS[$I]}')" >> $IMPORT_FILE || printf "%s" "NULL)" >> $IMPORT_FILE
+	[[ -n "${URLS[$I]}" ]] && printf "%s" "'${URLS[$I]}')" >> $IMPORT_FILE || printf "%s" "NULL)" >> $IMPORT_FILE
 }
 
 createPuntReport() {
@@ -579,26 +579,26 @@ createPuntReport() {
 getElapsedTime() {
 	msg debug "> getElapsedTime"
 	RUNHR=$((OVERALL_TIME / 3600))
-	if [ $RUNHR -gt 0 ]; then
+	if [[ $RUNHR -gt 0 ]]; then
 		ELAPSED="${RUNHR}h"
 		TIME_LEFT=$((OVERALL_TIME % 3600))
 		RUNMIN=$((TIME_LEFT / 60))
-		if [ $RUNMIN -gt 0 ]; then
+		if [[ $RUNMIN -gt 0 ]]; then
 			ELAPSED="$ELAPSED, ${RUNMIN}m"
 			RUNSEC=$((TIME_LEFT % 60))
 		else
 			RUNSEC=$TIME_LEFT
 		fi
-		[ -z "$ELAPSED" ] && ELAPSED="${RUNSEC}s" || ELAPSED="$ELAPSED, ${RUNSEC}s"
+		[[ -z "$ELAPSED" ]] && ELAPSED="${RUNSEC}s" || ELAPSED="$ELAPSED, ${RUNSEC}s"
 	else	
 		RUNMIN=$((OVERALL_TIME / 60))
-		if [ $RUNMIN -gt 0 ]; then
+		if [[ $RUNMIN -gt 0 ]]; then
 			ELAPSED="${RUNMIN}m"
 			RUNSEC=$((OVERALL_TIME % 60))
 		else
 			RUNSEC=$OVERALL_TIME
 		fi
-		[ -z "$ELAPSED" ] && ELAPSED="${RUNSEC}s" || ELAPSED="$ELAPSED, ${RUNSEC}s"
+		[[ -z "$ELAPSED" ]] && ELAPSED="${RUNSEC}s" || ELAPSED="$ELAPSED, ${RUNSEC}s"
 	fi
 	msg debug "< getElapsedTime" "$ELAPSED"
 }
@@ -610,14 +610,14 @@ getElapsedTime() {
 validEnvironment() {
 	msg debug "> validEnvironment"
 	RC=0
-	if [ -s $PATTERNS ]; then
+	if [[ -s $PATTERNS ]]; then
 		PATCOUNT=$(cat $PATTERNS | wc -l)
 	else
 		sleep 30
-		if [ -s $PATTERNS ]; then
+		if [[ -s $PATTERNS ]]; then
 			PATCOUNT=$(cat $PATTERNS | wc -l)
 		else
-			[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent env error "Invalid or missing pattern file: $PATTERNS"
+			[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && logAdminEvent env error "Invalid or missing pattern file: $PATTERNS"
 			mysql $DB_CONNECT -e "UPDATE Agents SET AgentState='Error', AgentMessage='Pattern file error: $PATTERNS' WHERE AgentID=$AGENT_ID"
 			retryArchive "Pattern file error: $PATTERNS"
 			RC=1
@@ -628,7 +628,7 @@ validEnvironment() {
 	mysql $DB_CONNECT -e "show tables" &> ${WORKDIR}/mysql.out
 	RCSQL=$?
 	if (( RCSQL )); then
-		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent sql error "$(cat ${WORKDIR}/mysql.out)"
+		[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && logAdminEvent sql error "$(cat ${WORKDIR}/mysql.out)"
 		RC=1
 	fi
 
@@ -659,7 +659,7 @@ fetchArchive() {
 			fi
 		done
 		if (( HOST_FAILED )); then
-			[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent insrc warning "Server Down: INSRC=$PINGHOST"
+			[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && logAdminEvent insrc warning "Server Down: INSRC=$PINGHOST"
 			retryArchive "Cannot ping INSRC"
 			RC=1
 		fi
@@ -685,7 +685,7 @@ fetchArchive() {
 	file)
 		cp "${INSRC_DIR}/${ARCHIVE}" "${ARCHFILE}" &>/dev/null
 		RC=$?
-		if [ $RC -gt 0 ]; then
+		if [[ $RC -gt 0 ]]; then
 			puntArchive $EMAIL_NORMAL "Cannot copy $ARCHIVE into $INDIR, ERROR=$RC"
 		fi
 		if (( MAX_ARCHIVE_SIZE > 0 )); then
@@ -714,7 +714,7 @@ extractArchive() {
 	else
 		DCBIN=''
 	fi
-	if [ -n "$DCBIN" ]; then
+	if [[ -n "$DCBIN" ]]; then
 		msg verbose "DECOMPRESS" "$DCBIN $ARCHFILE"
 		$DCBIN "$ARCHFILE" &>/dev/null
 		RC=$?
@@ -765,9 +765,9 @@ getArchiveInfo() {
 		esac
 		ARCH_RUN_TIME=$(echo $ARCH_RUN | awk '{print $4}')
 		SUSE_RELEASE=$(sed -ne '/\/etc\/SuSE-release$/,/#==/p' $ENVFILE | egrep -i "SUSE Linux Enterprise")
-		[ -z "$SUSE_RELEASE" ] && puntArchive $EMAIL_VERBOSE "Only SUSE Distributions are Supported"
+		[[ -z "$SUSE_RELEASE" ]] && puntArchive $EMAIL_VERBOSE "Only SUSE Distributions are Supported"
 		UNAME=$(grep -A1 'uname -a' $ENVFILE | tail -1)
-		if [ -n "$UNAME" ]; then
+		if [[ -n "$UNAME" ]]; then
 			SERVER_NAME=$(echo $UNAME | awk '{print $2}')
 			KERNEL_VERSION=$(echo $UNAME | awk '{print $3}')
 			SCRIPT_VERSION=$(grep 'Script Version' $ENVFILE | awk '{print $NF}')
@@ -781,20 +781,20 @@ getArchiveInfo() {
 		RELEASE=$(sed -ne '/\/etc\/SuSE-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
 		DISTRO=$(echo "$RELEASE" | head -1)
 		SPLEVEL=$(echo "$RELEASE" | grep PATCHLEVEL | awk '{print $NF}')
-		if [ -z "$SPLEVEL" ]; then
+		if [[ -z "$SPLEVEL" ]]; then
 			SPLEVEL=None
-		elif [ "$SPLEVEL" == "0" ]; then
+		elif [[ "$SPLEVEL" == "0" ]]; then
 			SPLEVEL=None
 		fi
 		OES=$(sed -ne '/\/etc\/novell-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
-		if [ -n "$OES" ]; then
+		if [[ -n "$OES" ]]; then
 			if echo "$OES" | grep Desktop &>/dev/null; then
 				OES_DISTRO=''
 				OES_SPLEVEL=''
 			else
 				OES_DISTRO=$(echo "$OES" | head -1)
 				OES_SPLEVEL=$(echo "$OES" | grep PATCHLEVEL | awk '{print $NF}' | sed -e 's/SP//')
-				[ -z "$OES_SPLEVEL" ] && OES_SPLEVEL=None
+				[[ -z "$OES_SPLEVEL" ]] && OES_SPLEVEL=None
 			fi
 		else
 			OES_DISTRO=''
@@ -811,7 +811,7 @@ getArchiveInfo() {
 		VIRT=$(grep -A2 '^Hardware:' $ENVFILE)
 		VIRT_HYPR=''
 		VIRT_IDTY=''
-		if [ -n "$VIRT" ]; then
+		if [[ -n "$VIRT" ]]; then
 			VIRT_HARD=$(echo "$VIRT" | grep '^Hardware:' | sed -e 's/Hardware:[[:space:]]*//')
 			if echo $VIRT_HARD | grep -i empty &>/dev/null; then
 				VIRT_HARD="See hardware.txt"
@@ -823,7 +823,7 @@ getArchiveInfo() {
 			VIRT_HARD='See hardware.txt'
 		fi
 		NOWSSBE=$(grep -i NOWS-SBE $RPMLIST)
-		if [ -n "$NOWSSBE" ]; then
+		if [[ -n "$NOWSSBE" ]]; then
 			NOWSVER=$(grep -i NOWS-copyMedia $RPMLIST | head -1 | awk '{print $3}')
 		else
 			unset NOWSVER
@@ -832,12 +832,12 @@ getArchiveInfo() {
 		PLUGINS=$(grep "^supportutils-plugin-[[:alpha:]]*[[:space:]]" $RPMLIST | awk '{print $1}' | sed -e 's/supportutils-plugin-//g')
 
 		BOOTFILE="${ARCHDIR}/boot.txt"
-		if [ -s $BOOTFILE ]; then 
+		if [[ -s $BOOTFILE ]]; then 
 			TYPECIS=$(grep -A1 '/proc/cmdline' $BOOTFILE | grep -i rescue=1)
 			TYPEBIS=$(grep -A1 '/proc/cmdline' $BOOTFILE | grep -i 'BOOT_IMAGE=.+' | grep -vi 'rescue=1')
-			if [ -n "$TYPECIS" ]; then
+			if [[ -n "$TYPECIS" ]]; then
 				BOOTYPE=1
-			elif [ -n "$TYPEBIS" ]; then
+			elif [[ -n "$TYPEBIS" ]]; then
 				BOOTYPE=2
 			else
 				BOOTYPE=0
@@ -946,7 +946,7 @@ patternPreProcessor() {
 analyzeArchiveStart() {
 	msg debug "> analyzeArchiveStart"
 	RC=0
-	if [ -e ${ARCHPATH}/ ]; then
+	if [[ -e ${ARCHPATH}/ ]]; then
 		msg verbose ANALYZING "$SERVER_NAME, Using $PATCOUNT Patterns"
 		setArchiveState Analyzing
 		BEGINNING=1
@@ -996,8 +996,8 @@ analyzeArchive() {
 		(( DEBUGGING_MODE )) && PATINFO=$($PATTERN -p ${ARCHPATH}/ 2>> $ANALYSIS_ERROR_LOG) || PATINFO=$($PATTERN -p ${ARCHPATH}/ 2>&1) 
 		BINRC=$?
 		(( DEBUGGING_MODE )) && echo "${PATTERN}__Return=${BINRC}__${PATHEADER}__${PATINFO}" >> $ANALYSIS_LOG
-		if [ $BINRC -gt 0 ]; then
-			[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern execution error:
+		if [[ $BINRC -gt 0 ]]; then
+			[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && logAdminEvent pat failed "Pattern execution error:
 $(echo $PATINFO | sed -e 's/META_CLASS=/\nMETA_CLASS=/')
 Pattern=${PATTERN}
 "
@@ -1023,13 +1023,13 @@ Pattern=${PATTERN}
 			# Output pattern results
 			if (( PAT_HEADER_ERROR ))
 			then
-				[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern header error:
+				[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && logAdminEvent pat failed "Pattern header error:
 Element $PAT_HEADER_ERROR, $TMP failed to match ${RESULT_ELEMENT[$PAT_HEADER_ERROR]}
 Pattern=${PATTERN}
 "
 			elif (( PAT_OUTPUT_ERROR ))
 			then
-				[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent pat failed "Pattern output error:
+				[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && logAdminEvent pat failed "Pattern output error:
 $(echo $PATINFO | sed -e 's/META_CLASS=/\nMETA_CLASS=/')
 Pattern=${PATTERN}
 "
@@ -1061,7 +1061,7 @@ buildReport() {
 	then
 		php -f $PHP_REPORT_BIN $ARCHIVE_ID > $REPORT 2>/dev/null
 	else
-		[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent PHP error "Missing PHP Report building: $PHP_REPORT_BIN"
+		[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && logAdminEvent PHP error "Missing PHP Report building: $PHP_REPORT_BIN"
 	fi
 	msg debug '< buildReport'
 }
@@ -1088,7 +1088,7 @@ putReport() {
 				fi
 			done
 			if (( HOST_FAILED )); then
-				[ $EMAIL_LEVEL -ge $EMAIL_MIN ] && logAdminEvent outsrc warning "Server Down: OUTSRC=$PINGHOST"
+				[[ $EMAIL_LEVEL -ge $EMAIL_MIN ]] && logAdminEvent outsrc warning "Server Down: OUTSRC=$PINGHOST"
 				mv ${REPORT} ${HOLDIR}/
 				retryArchive "Cannot contact $OUTSRC"
 				RC=1
@@ -1096,8 +1096,8 @@ putReport() {
 				msg verbose "UPLOAD" "curl --silent --fail --upload-file ${REPORT} ${OUTSRC}/$(basename $REPORT)"
 				curl --silent --fail --upload-file "${REPORT}" "${OUTSRC}/$(basename $REPORT)"
 				RC=$?
-				if [ $RC -gt 0 ]; then
-					if [ $PUNTING -eq 0 ]; then
+				if [[ $RC -gt 0 ]]; then
+					if [[ $PUNTING -eq 0 ]]; then
 						mv ${REPORT} ${HOLDIR}
 						retryArchive "Cannot upload report to $OUTSRC"
 					fi
@@ -1108,10 +1108,10 @@ putReport() {
 		file)
 			REPORTOUT="${OUTSRC_DIR}/$(basename $REPORT)"
 			msg verbose "POST" "mv ${REPORT} ${REPORTOUT}"
-			if [ -d $OUTSRC_DIR ]; then
+			if [[ -d $OUTSRC_DIR ]]; then
 				mv "${REPORT}" "${REPORTOUT}"
 				RC=$?
-				if [ $RC -gt 0 ]; then
+				if [[ $RC -gt 0 ]]; then
 					puntArchive $EMAIL_NORMAL "Cannot move $REPORT to ${OUTSRC_DIR}, mv ERROR=$RC"
 				fi
 			else
@@ -1130,7 +1130,7 @@ putReport() {
 }
 
 emailReport() {
-	[ $STATUS_NOTIFY_LEVEL -ge $STATUS_SUCCESS ] && emailSCAReport
+	[[ $STATUS_NOTIFY_LEVEL -ge $STATUS_SUCCESS ]] && emailSCAReport
 }
 
 retryExpired() {
@@ -1183,9 +1183,9 @@ main() {
 	PUNTING=0
 	retryExpired
 	ERR=$?
-	if [ $ERR -gt 0 ]; then
+	if [[ $ERR -gt 0 ]]; then
 		RETRY_MSG=$(mysql -NB $DB_CONNECT -e "SELECT ArchiveMessage FROM Archives WHERE ArchiveID='$ARCHIVE_ID'")
-		if [ -n "$RETRY_MSG" ]; then
+		if [[ -n "$RETRY_MSG" ]]; then
 			puntArchive $EMAIL_VERBOSE "Max retry count exceeded: $RETRY_MSG"
 		else
 			puntArchive $EMAIL_VERBOSE "Max retry count exceeded"
@@ -1238,35 +1238,35 @@ do
 	esac
 done
 
-if [ -n "$HOMEDIR" ]; then
+if [[ -n "$HOMEDIR" ]]; then
 	INDIR="${SCA_WORK}/${HOMEDIR}/incoming"
 	HOLDIR="${SCA_WORK}/${HOMEDIR}/holding"
 	WORKDIR="${SCA_WORK}/${HOMEDIR}/work"
 	REPORTDIR="${SCA_WORK}/${HOMEDIR}/reports"
-	[ -d $INDIR ] || mkdir -p $INDIR
-	[ -d $HOLDIR ] || mkdir -p $HOLDIR
-	[ -d $WORKDIR ] || mkdir -p $WORKDIR
-	[ -d $REPORTDIR ] || mkdir -p $REPORTDIR
+	[[ -d $INDIR ]] || mkdir -p $INDIR
+	[[ -d $HOLDIR ]] || mkdir -p $HOLDIR
+	[[ -d $WORKDIR ]] || mkdir -p $WORKDIR
+	[[ -d $REPORTDIR ]] || mkdir -p $REPORTDIR
 else
 	title
 	showHelp "ERROR: Missing home directory (-p)"
 	exit 5
 fi
 
-if [ -z "$ARCHIVE" ]; then
+if [[ -z "$ARCHIVE" ]]; then
 	title
 	showHelp "ERROR: Missing archive file (-a)"
 	exit 10
 fi
 
-if [ -n "$SQLIDS" ]; then
+if [[ -n "$SQLIDS" ]]; then
 	AGENT_ID=$(echo $SQLIDS | cut -d, -f1)
 	WORKER_ID=$(echo $SQLIDS | cut -d, -f2)
 	ARCHIVE_ID=$(echo $SQLIDS | cut -d, -f3)
 	SERVER_ID=0
-	[ -z "$ARCHIVE_ID" ] && { showHelp "ERROR: Missing Archive ID"; exit 16; }
-	[ -z "$AGENT_ID" ] && { showHelp "ERROR: Missing Agent ID"; exit 17; }
-	[ -z "$WORKER_ID" ] && { showHelp "ERROR: Missing Worker ID"; exit 17; }
+	[[ -z "$ARCHIVE_ID" ]] && { showHelp "ERROR: Missing Archive ID"; exit 16; }
+	[[ -z "$AGENT_ID" ]] && { showHelp "ERROR: Missing Agent ID"; exit 17; }
+	[[ -z "$WORKER_ID" ]] && { showHelp "ERROR: Missing Worker ID"; exit 17; }
 else
 	title
 	showHelp "ERROR: Missing mySQL IDs (-i)"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER=1.0.4
+SVER='1.0.6'
 
 ##############################################################################
 #  sdagent-config - SCA Agent Configuration Tool
@@ -9,7 +9,7 @@ SVER=1.0.4
 # Description:  Configures the Agent Server to communicate with the Broker 
 #               Server.
 # Runs on:      Agent Server
-# Modified:     2014 Apr 22
+# Modified:     2018 Jan 03
 #
 ##############################################################################
 #
@@ -26,7 +26,7 @@ SVER=1.0.4
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 #  Authors/Contributors:
-#     Jason Record (jrecord@suse.com)
+#     Jason Record (jason.record@suse.com)
 #
 ##############################################################################
 
@@ -49,7 +49,7 @@ title() {
 
 showHelp() {
 	title
-	[ -n "$1" ] && { echo "$1"; echo; }
+	[[ -n "$1" ]] && { echo "$1"; echo; }
 	echo "Usage: $CURRENT_SCRIPT -h <broker> -p <sdagent_password> -i <input_url> -e <admin_email> [OPTIONS]"
 	echo 'Description:'
 	echo '  Configures a new agent that will run sdagents.'
@@ -78,7 +78,7 @@ testURL() {
 	printf "Testing $1 URL $TURL ... "
 	case $TYPE in
 	file)
-		if [ ! -d $UDIR ]; then
+		if [[ ! -d $UDIR ]]; then
 			RCODE=10
 		fi
 		;;
@@ -103,13 +103,13 @@ main() {
 		mysql $DB_CONNECT -e "SELECT AgentID,Hostname FROM Agents WHERE ( Hostname LIKE \"${SERVER_NAME}%\" )"
 		echo
 		AGENT_ID=$(mysql -NB $DB_CONNECT -e "SELECT AgentID FROM Agents WHERE ( Hostname LIKE \"${SERVER_NAME}%\" )" 2>/dev/null)
-		if [ -z "$AGENT_ID" ]; then
+		if [[ -z "$AGENT_ID" ]]; then
 			echo "ERROR: Cannot obtain AgentID on $OPT_BROKER for $SERVER_NAME"
 			echo "Consider running setup-sdagent on the Broker server."
 			echo
 			exit 2
 		else
-			if [ -e $AGENT_CONFIG ]; then
+			if [[ -e $AGENT_CONFIG ]]; then
 				OPT_INSRC_TYPE=$(echo $OPT_INSRC | cut -d\: -f1) 
 				OPT_INSRC_HOST=$(echo $OPT_INSRC | cut -d\/ -f3) 
 				OPT_INSRC_DIR=$(echo $OPT_INSRC | sed -e "s!${OPT_INSRC_TYPE}://${OPT_INSRC_HOST}!!g")
@@ -141,7 +141,7 @@ main() {
 		exit 1
 	fi
 	mysql $DB_CONNECT -e "UPDATE Agents SET AgentState='Active', AgentEvent=NOW(), AgentMessage='Confirm cron entries' WHERE AgentID=$AGENT_ID"
-	if [ $? -gt 0 ]; then
+	if [[ $? -gt 0 ]]; then
 		echo
 		exit 4
 	else
@@ -156,7 +156,7 @@ main() {
 		echo "  Run 'crontab $DEF_CRON' to replace the cron"
 		echo "  Run 'crontab -e sca -e' to manually edit the cron"
 		echo
-		[ -s $DEF_CRON ] && cat $DEF_CRON
+		[[ -s $DEF_CRON ]] && cat $DEF_CRON
 		echo
 	fi
 }
@@ -185,12 +185,12 @@ do
 		t) OPT_POST_REPORT=1 ;;
 	esac
 done
-[ -z "$OPT_BROKER" ] && { showHelp "ERROR: Missing Broker hostname"; exit 1; }
-[ -z "$OPT_PASS" ] && { showHelp "ERROR: Missing MySQL sdagent Password"; exit 1; }
-[ -z "$OPT_INSRC" ] && { showHelp "ERROR: Missing Input Source URL"; exit 1; }
-[ -z "$OPT_OUTSRC" ] && OPT_OUTSRC=$OPT_INSRC
-[ -z "$OPT_EMAIL_ADMIN" ] && { showHelp "ERROR: Missing Admin email address"; exit 1; }
-[ -z "$OPT_EMAIL_REPORT" ] && OPT_EMAIL_REPORT=$OPT_EMAIL_ADMIN
+[[ -z "$OPT_BROKER" ]] && { showHelp "ERROR: Missing Broker hostname"; exit 1; }
+[[ -z "$OPT_PASS" ]] && { showHelp "ERROR: Missing MySQL sdagent Password"; exit 1; }
+[[ -z "$OPT_INSRC" ]] && { showHelp "ERROR: Missing Input Source URL"; exit 1; }
+[[ -z "$OPT_OUTSRC" ]] && OPT_OUTSRC=$OPT_INSRC
+[[ -z "$OPT_EMAIL_ADMIN" ]] && { showHelp "ERROR: Missing Admin email address"; exit 1; }
+[[ -z "$OPT_EMAIL_REPORT" ]] && OPT_EMAIL_REPORT=$OPT_EMAIL_ADMIN
 
 title
 main

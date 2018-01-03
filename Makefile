@@ -55,7 +55,7 @@ obsetup: clean
 
 obclean: 
 	@echo [obclean]: Cleaning OBS Novell:NTS:Unstable
-	@rm -rf Novell:NTS:Unstable
+	@rm -rf *Novell:NTS:Unstable
 
 obs: dist
 	@echo [obs]: Preparing OBS Novell:NTS:Unstable/$(OBSPACKAGE) for checkin

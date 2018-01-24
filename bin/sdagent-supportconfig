@@ -764,11 +764,39 @@ getArchiveInfo() {
 			*) ARCH_RUN_DATE='0000-00-00' ;;
 		esac
 		ARCH_RUN_TIME=$(echo $ARCH_RUN | awk '{print $4}')
-		SUSE_RELEASE=$(sed -ne '/\/etc\/os-release$/,/#==/p' $ENVFILE | egrep -i "SUSE Linux Enterprise")
-		if [[ -z "$SUSE_RELEASE" ]]; then
-			SUSE_RELEASE=$(sed -ne '/\/etc\/SuSE-release$/,/#==/p' $ENVFILE | egrep -i "SUSE Linux Enterprise")
+		OS_RELEASE=$(sed -ne '/\/etc\/os-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
+		SUSE_RELEASE=$(sed -ne '/\/etc\/SuSE-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
+		if [[ -n "$OS_RELEASE" ]]; then
+			if echo "$OS_RELEASE" | egrep -i "SUSE Linux Enterprise|SUSE Linux Desktop" &>/dev/null; then
+				DISTRO=$(echo "$OS_RELEASE" | grep PRETTY_NAME | cut -d= -f2)
+				SPLEVEL=$(echo "$OS_RELEASE" | grep VERSION_ID | cut -d= -f2)
+				if echo $SPLEVEL | grep '\.' &>/dev/null; then
+					SPLEVEL=$(echo $SPLEVEL | cut -d\. -f2)
+				fi
+				if [[ -z "$SPLEVEL" ]]; then
+					SPLEVEL=None
+				elif [[ "$SPLEVEL" == "0" ]]; then
+					SPLEVEL=None
+				fi
+			else
+				puntArchive $EMAIL_VERBOSE "Only SUSE Distributions are Supported"
+			fi
+		elif [[ -n "$SUSE_RELEASE" ]]; then
+			if echo "$SUSE_RELEASE" | egrep -i "SUSE Linux Enterprise|SUSE Linux Desktop" &>/dev/null; then
+				RELEASE=$(sed -ne '/\/etc\/SuSE-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
+				DISTRO=$(echo "$RELEASE" | head -1)
+				SPLEVEL=$(echo "$RELEASE" | grep PATCHLEVEL | awk '{print $NF}')
+				if [[ -z "$SPLEVEL" ]]; then
+					SPLEVEL=None
+				elif [[ "$SPLEVEL" == "0" ]]; then
+					SPLEVEL=None
+				fi
+			else
+				puntArchive $EMAIL_VERBOSE "Only SUSE Distributions are Supported"
+			fi
+		else
+			puntArchive $EMAIL_VERBOSE "Unknown Distribution, Only SUSE Distributions are Supported"
 		fi
-		[[ -z "$SUSE_RELEASE" ]] && puntArchive $EMAIL_VERBOSE "Only SUSE Distributions are Supported"
 		UNAME=$(grep -A1 'uname -a' $ENVFILE | tail -1)
 		if [[ -n "$UNAME" ]]; then
 			SERVER_NAME=$(echo $UNAME | awk '{print $2}')
@@ -780,28 +808,6 @@ getArchiveInfo() {
 			KERNEL_VERSION=""
 			SCRIPT_VERSION=""
 			RC=1
-		fi
-		RELEASE=$(sed -ne '/\/etc\/os-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
-		if [[ -n "$RELEASE" ]]; then
-			DISTRO=$(echo "$RELEASE" | grep PRETTY_NAME | cut -d= -f2)
-			SPLEVEL=$(echo "$RELEASE" | grep VERSION_ID | cut -d= -f2)
-			if echo $SPLEVEL | grep '\.' &>/dev/null; then
-				SPLEVEL=$(echo $SPLEVEL | cut -d\. -f2)
-			fi
-			if [[ -z "$SPLEVEL" ]]; then
-				SPLEVEL=None
-			elif [[ "$SPLEVEL" == "0" ]]; then
-				SPLEVEL=None
-			fi
-		else
-			RELEASE=$(sed -ne '/\/etc\/SuSE-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
-			DISTRO=$(echo "$RELEASE" | head -1)
-			SPLEVEL=$(echo "$RELEASE" | grep PATCHLEVEL | awk '{print $NF}')
-			if [[ -z "$SPLEVEL" ]]; then
-				SPLEVEL=None
-			elif [[ "$SPLEVEL" == "0" ]]; then
-				SPLEVEL=None
-			fi
 		fi
 		OES=$(sed -ne '/\/etc\/novell-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
 		if [[ -n "$OES" ]]; then

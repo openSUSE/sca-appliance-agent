@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER='1.0.40'
+SVER='1.0.41'
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -9,7 +9,7 @@ SVER='1.0.40'
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2018 Jan 09
+# Modified:     2018 Jan 24
 #
 ##############################################################################
 #
@@ -397,12 +397,8 @@ archiveIdentitySQL() {
 	shopt -s nocasematch
 	[[ -n "$KERNEL_VERSION" ]] && VERKERN="'$KERNEL_VERSION'" || VERKERN="NULL"
 	[[ -n "$SCRIPT_VERSION" ]] && VERSUPT="'$SCRIPT_VERSION'" || VERSUPT="NULL"
-	if [[ -n "$DISTRO" ]]; then
-		ARCH=$(echo $DISTRO | cut -d\( -f2 | cut -d\) -f1)
-		[[ -n "$ARCH" ]] && ARCH="'$ARCH'" || ARCH="NULL"
-	else
-		ARCH="NULL"
-	fi
+	UNAME=$(grep -A1 'uname -a' $ENVFILE | tail -1)
+	ARCH=$(echo $UNAME | awk '{print $(NF-1)}')
 	[[ -n "$SERVER_NAME" ]] && HOST_NAME="'$SERVER_NAME'" || HOST_NAME="NULL"
 	[[ -n "$VIRT_HARD" ]] && HARDWARE="'$VIRT_HARD'" || HARDWARE="NULL"
 	DIST="${DISTRO%% (*}"
@@ -884,14 +880,31 @@ patternPreProcessor() {
 	> $PATTERNS # Initialize the pattern file
 
 	# SUSE Linux Enterprise Server/Desktop (SLE)
-	RELEASEINFO=$(sed -ne '/\/etc\/SuSE-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
+	RELEASEINFO=$(sed -ne '/\/etc\/os-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
+	VER=0
 	if echo "$RELEASEINFO" | grep -i 'suse linux enterprise' &>/dev/null
 	then
-		VER=$(echo "$RELEASEINFO" | grep VERSION | head -1 | awk '{print $NF}')
-		REL=$(echo "$RELEASEINFO" | grep PATCHLEVEL | head -1 | awk '{print $NF}')
-		[[ -z "$REL" ]] && REL=0
+		VERSION_ID=$(echo "$OS_RELEASE" | grep VERSION_ID | cut -d= -f2 | sed -e 's/"//g')
+		if echo $VERSION_ID | grep '\.' &>/dev/null; then
+			VER=$(echo $VERSION_ID | cut -d\. -f1)
+			REL=$(echo $VERSION_ID | cut -d\. -f2)
+		else
+			VER=$VERSION_ID
+			REL=0
+		fi
 		PATTERN_GROUPS="$PATTERN_GROUPS SLE/sle${VER}all"
 		PATTERN_GROUPS="$PATTERN_GROUPS SLE/sle${VER}sp${REL}"
+	fi
+	if (( ! VER )); then
+		RELEASEINFO=$(sed -ne '/\/etc\/SuSE-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
+		if echo "$RELEASEINFO" | grep -i 'suse linux enterprise' &>/dev/null
+		then
+			VER=$(echo "$RELEASEINFO" | grep VERSION | head -1 | awk '{print $NF}')
+			REL=$(echo "$RELEASEINFO" | grep PATCHLEVEL | head -1 | awk '{print $NF}')
+			[[ -z "$REL" ]] && REL=0
+			PATTERN_GROUPS="$PATTERN_GROUPS SLE/sle${VER}all"
+			PATTERN_GROUPS="$PATTERN_GROUPS SLE/sle${VER}sp${REL}"
+		fi
 	fi
 
 	# Open Enterprise Server (OES)

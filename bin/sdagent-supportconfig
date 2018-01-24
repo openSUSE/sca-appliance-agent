@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SVER='1.0.41'
+SVER='1.0.42'
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
@@ -451,7 +451,7 @@ archiveIdentitySQL() {
 	echo " ServerName=$HOST_NAME," >> $IMPORT_FILE
 	echo " VersionKernel=$VERKERN," >> $IMPORT_FILE
 	echo " VersionSupportconfig=$VERSUPT," >> $IMPORT_FILE
-	echo " Architecture=$ARCH," >> $IMPORT_FILE
+	echo " Architecture='$ARCH'," >> $IMPORT_FILE
 	echo " PatternsApplicable=$PATCOUNT," >> $IMPORT_FILE
 	echo " Hardware=$HARDWARE," >> $IMPORT_FILE
 	echo " Distro=$DIST," >> $IMPORT_FILE
@@ -764,8 +764,8 @@ getArchiveInfo() {
 		SUSE_RELEASE=$(sed -ne '/\/etc\/SuSE-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
 		if [[ -n "$OS_RELEASE" ]]; then
 			if echo "$OS_RELEASE" | egrep -i "SUSE Linux Enterprise|SUSE Linux Desktop" &>/dev/null; then
-				DISTRO=$(echo "$OS_RELEASE" | grep PRETTY_NAME | cut -d= -f2)
-				SPLEVEL=$(echo "$OS_RELEASE" | grep VERSION_ID | cut -d= -f2)
+				DISTRO=$(echo "$OS_RELEASE" | grep PRETTY_NAME | cut -d= -f2 | sed -e 's/"//g')
+				SPLEVEL=$(echo "$OS_RELEASE" | grep VERSION_ID | cut -d= -f2 | sed -e 's/"//g')
 				if echo $SPLEVEL | grep '\.' &>/dev/null; then
 					SPLEVEL=$(echo $SPLEVEL | cut -d\. -f2)
 				fi

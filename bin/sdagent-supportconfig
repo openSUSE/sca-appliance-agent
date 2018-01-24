@@ -765,14 +765,11 @@ getArchiveInfo() {
 		if [[ -n "$OS_RELEASE" ]]; then
 			if echo "$OS_RELEASE" | egrep -i "SUSE Linux Enterprise|SUSE Linux Desktop" &>/dev/null; then
 				DISTRO=$(echo "$OS_RELEASE" | grep PRETTY_NAME | cut -d= -f2 | sed -e 's/"//g')
-				SPLEVEL=$(echo "$OS_RELEASE" | grep VERSION_ID | cut -d= -f2 | sed -e 's/"//g')
-				if echo $SPLEVEL | grep '\.' &>/dev/null; then
-					SPLEVEL=$(echo $SPLEVEL | cut -d\. -f2)
-				fi
-				if [[ -z "$SPLEVEL" ]]; then
-					SPLEVEL=None
-				elif [[ "$SPLEVEL" == "0" ]]; then
-					SPLEVEL=None
+				VERSION_ID=$(echo "$OS_RELEASE" | grep VERSION_ID | cut -d= -f2 | sed -e 's/"//g')
+				if echo $VERSION_ID | grep '\.' &>/dev/null; then
+					SPLEVEL=$(echo $VERSION_ID | cut -d\. -f2)
+				else
+					SPLEVEL='None'
 				fi
 			else
 				puntArchive $EMAIL_VERBOSE "Only SUSE Distributions are Supported"

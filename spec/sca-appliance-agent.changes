@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
-Fri Mar 12 19:26:14 UTC 2021 - jason.record@gmail.com
+Fri Mar 12 21:17:03 UTC 2021 - jason.record@gmail.com
 
+- New supportconfigs with xz compression are processed (bsc#1183343)
 - setup-sca correctly runs sdagent-config (bsc#1183464)
 
 -------------------------------------------------------------------

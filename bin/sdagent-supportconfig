@@ -1,15 +1,15 @@
 #!/bin/bash
 
-SVER='1.0.42'
+SVER='1.0.44'
 
 ##############################################################################
 # sdagent-suportconfig - SCA Agent Worker for Supportconfig Archives
-# Copyright (C) 2015-2018 SUSE LLC
+# Copyright (C) 2015-2021 SUSE LLC
 #
 # Description:  A process forked by the sdagent to analyze a supportconfig 
 #               archive. Supportconfig archives can be from any server.
 # Runs on:      Agent Server
-# Modified:     2018 Jan 24
+# Modified:     2021 Mar 12
 #
 ##############################################################################
 #
@@ -702,7 +702,9 @@ extractArchive() {
 	msg debug "> extractArchive" "$ARCHFILE"
 	setArchiveState Extracting
 	cd $WORKDIR
-	if echo "$ARCHFILE" | egrep 'tbz$|tar\.bz2$' &>/dev/null; then
+	if echo "$ARCHFILE" | egrep 'txz$|tar\.xz$' &>/dev/null; then
+		DCBIN='xz -d'
+	elif echo "$ARCHFILE" | egrep 'tbz$|tar\.bz2$' &>/dev/null; then
 		DCBIN='bzip2 -d'
 	elif echo "$ARCHFILE" | egrep 'tgz$|tar\.gz$' &>/dev/null; then
 		DCBIN='gzip -d'
@@ -714,7 +716,7 @@ extractArchive() {
 		$DCBIN "$ARCHFILE" &>/dev/null
 		RC=$?
 		test $RC -gt 0 && retryArchive "Cannot decompress tar ball archive, $DCBIN ERROR=$RC"
-		TARFILE=$(echo "$ARCHFILE" | sed -e 's/tbz$/tar/;s/tar.bz2$/tar/;s/tgz$/tar/;s/tar.gz$/tar/')
+		TARFILE=$(echo "$ARCHFILE" | sed -e 's/txz$/tar/;s/tbz$/tar/;s/tgz$/tar/;s/tar.xz$/tar/;s/tar.bz2$/tar/;s/tar.gz$/tar/')
 		msg verbose "EXTRACT" "tar xf $TARFILE"
 		tar xf "$TARFILE" &>/dev/null
 		RC=$?

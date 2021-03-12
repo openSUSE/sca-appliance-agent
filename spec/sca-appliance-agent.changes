@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 12 19:26:14 UTC 2021 - jason.record@gmail.com
+
+- setup-sca correctly runs sdagent-config (bsc#1183464)
+
+-------------------------------------------------------------------
 Thu Jan 25 00:33:59 UTC 2018 - jason.record@suse.com
 
 - Added sle15 detection and processing (bsc#1075250)

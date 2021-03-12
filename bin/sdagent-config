@@ -1,15 +1,15 @@
 #!/bin/bash
 
-SVER='1.0.6'
+SVER='1.0.7'
 
 ##############################################################################
 #  sdagent-config - SCA Agent Configuration Tool
-#  Copyright (C) 2014 SUSE LLC
+#  Copyright (C) 2014-2021 SUSE LLC
 #
 # Description:  Configures the Agent Server to communicate with the Broker 
 #               Server.
 # Runs on:      Agent Server
-# Modified:     2018 Jan 03
+# Modified:     2021 Mar 12
 #
 ##############################################################################
 #
@@ -98,8 +98,14 @@ testURL() {
 
 main() {
 	if ping -c1 -w1 $OPT_BROKER &>/dev/null; then
-		DB_CONNECT="-h $OPT_BROKER -u $DB_USER -p${OPT_PASS} $DB_NAME"
 		test -z "$SERVER_NAME" && SERVER_NAME=$(hostname)
+		LOCAL_BROKER=0
+		if [[ "$OPT_BROKER" -eq "$SERVER_NAME" ]]; then
+			DB_CONNECT="-u $DB_USER -p${OPT_PASS} $DB_NAME"
+			LOCAL_BROKER=1
+		else
+			DB_CONNECT="-h $OPT_BROKER -u $DB_USER -p${OPT_PASS} $DB_NAME"
+		fi
 		mysql $DB_CONNECT -e "SELECT AgentID,Hostname FROM Agents WHERE ( Hostname LIKE \"${SERVER_NAME}%\" )"
 		echo
 		AGENT_ID=$(mysql -NB $DB_CONNECT -e "SELECT AgentID FROM Agents WHERE ( Hostname LIKE \"${SERVER_NAME}%\" )" 2>/dev/null)
@@ -120,6 +126,9 @@ main() {
 				OPT_OUTSRC_DIR=$(echo $OPT_OUTSRC | sed -e "s!${OPT_OUTSRC_TYPE}://${OPT_OUTSRC_HOST}!!g")
 				testURL Output $OPT_OUTSRC $OPT_OUTSRC_TYPE $OPT_INSRC_DIR
 				OPT_EMAIL_ADMIN=$(echo $OPT_EMAIL_ADMIN | sed -e "s!,! !g;s!  ! !g")
+				if (( LOCAL_BROKER )); then
+					sed -i -e "s!-h \$DB_HOSTNAME !!" $AGENT_CONFIG
+				fi
 				sed -i -e "s!^AGENT_ID=.*!AGENT_ID=${AGENT_ID}!;s!^DB_PASS=.*!DB_PASS='$OPT_PASS'!;s!^DB_HOSTNAME=.*!DB_HOSTNAME='${OPT_BROKER}'!" $AGENT_CONFIG
 				sed -i -e "s!^INSRC=.*!INSRC='${OPT_INSRC}'!;s!^OUTSRC=.*!OUTSRC='${OPT_OUTSRC}'!" $AGENT_CONFIG
 				sed -i -e "s!^INSRC_TYPE=.*!INSRC_TYPE='${OPT_INSRC_TYPE}'!;s!^INSRC_HOST=.*!INSRC_HOST='${OPT_INSRC_HOST}'!;s!^INSRC_DIR=.*!INSRC_DIR='${OPT_INSRC_DIR}'!" $AGENT_CONFIG

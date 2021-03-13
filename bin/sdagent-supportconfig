@@ -805,20 +805,9 @@ getArchiveInfo() {
 			SCRIPT_VERSION=""
 			RC=1
 		fi
-		OES=$(sed -ne '/\/etc\/novell-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
-		if [[ -n "$OES" ]]; then
-			if echo "$OES" | grep Desktop &>/dev/null; then
-				OES_DISTRO=''
-				OES_SPLEVEL=''
-			else
-				OES_DISTRO=$(echo "$OES" | head -1)
-				OES_SPLEVEL=$(echo "$OES" | grep PATCHLEVEL | awk '{print $NF}' | sed -e 's/SP//')
-				[[ -z "$OES_SPLEVEL" ]] && OES_SPLEVEL=None
-			fi
-		else
-			OES_DISTRO=''
-			OES_SPLEVEL=''
-		fi
+		OES=''
+		OES_DISTRO=''
+		OES_SPLEVEL=''
 		msg debug VAR "OES_DISTRO='$OES_DISTRO', OES_SPLEVEL='$OES_SPLEVEL'"
 		SRNUM=0
 		TMPSR=$(grep "^SR#:" $ENVFILE | awk '{print $NF}')
@@ -841,12 +830,7 @@ getArchiveInfo() {
 			VIRT=''
 			VIRT_HARD='See hardware.txt'
 		fi
-		NOWSSBE=$(grep -i NOWS-SBE $RPMLIST)
-		if [[ -n "$NOWSSBE" ]]; then
-			NOWSVER=$(grep -i NOWS-copyMedia $RPMLIST | head -1 | awk '{print $3}')
-		else
-			unset NOWSVER
-		fi
+		unset NOWSVER
 		SLEPOS=$(grep -A4 '/etc/slepos-release' $ENVFILE | grep -v '/etc/slepos-release' | head -1)
 		PLUGINS=$(grep "^supportutils-plugin-[[:alpha:]]*[[:space:]]" $RPMLIST | awk '{print $1}' | sed -e 's/supportutils-plugin-//g')
 
@@ -907,17 +891,6 @@ patternPreProcessor() {
 		fi
 	fi
 
-	# Open Enterprise Server (OES)
-	RELEASEINFO=$(sed -ne '/\/etc\/novell-release$/,/#==/p' $ENVFILE | egrep -v "^$|^#")
-	if echo "$RELEASEINFO" | grep -i 'open enterprise' &>/dev/null
-	then
-		VER=$(echo "$RELEASEINFO" | grep VERSION | head -1 | awk '{print $NF}')
-		VER_MAJOR=${VER/\.*/}
-		REL=$(echo "$RELEASEINFO" | grep PATCHLEVEL | head -1 | awk '{print $NF}')
-		PATTERN_GROUPS="$PATTERN_GROUPS OES/oes${VER_MAJOR}all"
-		PATTERN_GROUPS="$PATTERN_GROUPS OES/oes${VER_MAJOR}sp${REL}"
-	fi
-
 	# SUSE Manager (SUMA)
 	RELEASEINFO=$(egrep '^susemanager[[:space:]]|^susemanager-proxy[[:space:]]' $RPMFILE)
 	if [[ -n "$RELEASEINFO" ]]
@@ -933,33 +906,6 @@ patternPreProcessor() {
 		PATTERN_GROUPS="$PATTERN_GROUPS HAE"
 	fi
 	
-	# eDirectory
-	RELEASEINFO=$(egrep -i "NDSserv[[:space:]]" $RPMFILE | grep -v "^sca-patterns-" )
-	if [[ -n "$RELEASEINFO" ]]
-	then
-		PATTERN_GROUPS="$PATTERN_GROUPS edirectory"
-	fi
-
-	# GroupWise
-	if egrep -i "groupwise" $RPMFILE | grep -v "^sca-patterns-" &>/dev/null
-	then
-		PATTERN_GROUPS="$PATTERN_GROUPS groupwise"
-	fi
-
-	# GroupWise Datasync Mobility
-	RELEASEINFO=$(egrep -i "datasync-common[[:space:]]" $RPMFILE | grep -v "^sca-patterns-" )
-	if [[ -n "$RELEASEINFO" ]]
-	then
-		PATTERN_GROUPS="$PATTERN_GROUPS groupwise"
-	fi
-
-	# Filr
-	RELEASEINFO=$(sed -ne '/\/etc\/Novell-VA-release/,/#==/p' $ENVFILE | egrep -v "^$|^#")
-	if [[ -n "$RELEASEINFO" ]]
-	then
-		PATTERN_GROUPS="$PATTERN_GROUPS filr"
-	fi
-
 	msg verbose PATTERNS "patternPreProcessor Manifest: $PATTERN_GROUPS"
 	EFFECTIVE_GROUPS=''
 	msg verbose PATTERNS "patternPreProcessor: Creating pattern manifest"

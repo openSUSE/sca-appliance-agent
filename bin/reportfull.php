@@ -1,5 +1,5 @@
-<?PHP //echo "<!-- Modified: Date       = 2015 Mar 05 -->\n";
-	$sver = '1.0.21ag';
+<?PHP //echo "<!-- Modified: Date       = 2021 Mar 12 -->\n";
+	$sver = '1.0.25ag';
 	$givenArchiveID = $argv[1];
 	if ( ! is_numeric($givenArchiveID) ) {
 		die("<HTML><FONT SIZE=\"-1\"><B>ERROR</B>: Invalid ArchiveID, Only numeric values allowed.</FONT><BR></HTML>");			
@@ -255,15 +255,7 @@ function showPattern(patternOutput,patternLocation)
 
 	echo "\n<TABLE CELLPADDING=\"5\">\n";
 	echo "<TR><TD>&nbsp;</TD></TR>\n";
-	if ( $SRNum > 0 ) {
-		if ( $SRView == 0 ) {
-			echo "<TR><TD><B>SR#:</B></TD><TD><A HREF=\"https://secure-www.novell.com/center/eservice/\" TARGET=\"_blank\">$SRNum</A></TD></TR>\n";
-		} elseif ($SRView == 1 ) {
-			echo "<TR><TD><B>SR#:</B></TD><TD><A HREF=\"https://crystal10.innerweb.novell.com/CE10/viewer.jsp?id=4843&prompts=SRID=$SRNum\" TARGET=\"_blank\">$SRNum</A></TD></TR>\n";
-		} else {
-			echo "<TR><TD><B>SR#:</B></TD><TD>$SRNum</TD></TR>\n";
-		}
-	}
+	echo "<TR><TD><B>SR#:</B></TD><TD>$SRNum</TD></TR>\n";
 	echo "<TR><TD><B>Server Name:</B></TD><TD>$ServerName</TD><TD><B>Hardware:</B></TD><TD>$Hardware</TD></TR>\n";
 	echo "<TR><TD><B>Distribution:</B></TD><TD>$Distro ($Architecture)</TD><TD><B>Service Pack:</B></TD><TD>$DistroSP</TD></TR>\n";
 	if ( isset($OESDistro) ) { 

@@ -1,7 +1,7 @@
-# 
+#
 # spec file for package sca-appliance-agent
 #
-# Copyright (c) 2022 SUSE LLC
+# Copyright (c) 2021 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -12,21 +12,25 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
+#
+
+
 %define sca_common sca
 %define sca_libdir /usr/lib/%{sca_common}
 %define sca_configdir %{_sysconfdir}/%{sca_common}
 
-Name:         sca-appliance-agent
-Version:      1.3.1
-Release:      0
-Summary:      Supportconfig Analysis Appliance Agent
-License:      GPL-2.0
-URL:          https://github.com/g23guy/sca-appliance-agent
-Group:        System/Monitoring
-Source:       %{name}-%{version}.tar.gz
-Requires:     sca-appliance-common
-Requires:     sca-patterns-base
-Buildarch:    noarch
+Name:           sca-appliance-agent
+Version:        1.3.1
+Release:        0
+Summary:        Supportconfig Analysis Appliance Agent
+License:        GPL-2.0-only
+Group:          System/Monitoring
+URL:            https://github.com/g23guy/sca-appliance-agent
+Source:         %{name}-%{version}.tar.gz
+Requires:       sca-appliance-common
+Requires:       sca-patterns-base
+BuildArch:      noarch
 
 %description
 Analyzes supportconfig archives using the Supportconfig Analysis patterns. The results are
@@ -73,4 +77,3 @@ install -m 644 man/*.5.gz %{buildroot}%{_mandir}/man5
 %doc %{_docdir}/%{name}/*
 
 %changelog
-
